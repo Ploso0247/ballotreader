@@ -1,3 +1,9 @@
-ballots.py
-data/savedBallots.json
-log.txt
+{
+    "always": [
+        "log.txt"
+    ],
+    "v1.1": [
+        "ballots.py",
+        "data/savedBallots.json"
+    ]
+}
