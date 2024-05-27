@@ -2,8 +2,8 @@
     "always": [
         "log.json"
     ],
-    "v1.0": [
+    "v1.1": [
         "ballots.py",
-        "data/savedBallots.json"
+        "STARTHERE.txt"
     ]
 }
