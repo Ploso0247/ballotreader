@@ -1,0 +1,9 @@
+{
+    "always": [
+        "log.json"
+    ],
+    "v1.1": [
+        "ballots.py",
+        "data/savedBallots.json"
+    ]
+}
