@@ -1,2 +1,2 @@
-./ballots.py
-./data/savedBallots.json
+ballots.py
+data/savedBallots.json
