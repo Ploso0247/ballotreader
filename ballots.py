@@ -987,6 +987,7 @@ what side you lose most on, check the stats page.<br><br>
         self.check_for_updates_button.setToolTip("Check this program's source repository on github for any new files")
         self.check_for_updates_button.clicked.connect(self.checkForUpdates)
         self.container_layout.addWidget(self.check_for_updates_button)
+        self.check_for_updates_button.hide()
 
         print("Creating the error_label")
         self.error_label = QLabel("Here's the log! This gives you status updates.<br>")
