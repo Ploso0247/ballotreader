@@ -5,6 +5,7 @@ import json
 import requests
 import shutil
 import random
+import base64
 from pdf2docx import Converter
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QMessageBox, QLineEdit, QLabel, QHBoxLayout, QGroupBox, QCheckBox, QGridLayout, QScrollArea, QTabWidget, QToolButton, QSizePolicy, QGraphicsDropShadowEffect
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize
@@ -49,42 +50,6 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 family_id = ""
 person_id = ""
 thisYear = ""
-
-
-
-
-
-
-def process_github_contents(APIURL, LOCAL_REPO_DIR):
-    response = requests.get(APIURL, headers={ "Accept": "application/vnd.github.v3+json" })
-    files = response.json()
-    
-    if isinstance(files, dict) and files.get('message') == 'Not Found':
-        print("This directory no exist.")
-        return
-    
-    for file in files:
-        file_path = os.path.join(script_dir, file['path'])
-        if file['type'] == 'file':
-            if not os.path.exists(file_path) or os.path.getsize(file_path) != file['size']:
-                norm_path = os.path.normpath(file['path'])
-                parts = norm_path.split(os.sep)
-                print(parts)
-                if not os.path.exists(os.path.join(script_dir, parts[0])) and (parts[0] == 'pypeteer-chrome' or parts[0] == 'WPy64-31160' or parts[1] == 'chrome-win' or parts[1] == 'chrome-linux' or parts[0] == '.gitattributes' or parts[2] == 'delete.txt'):
-                    continue
-                print(f"Downloading new or updated file: {file['path']}")
-                response = requests.get(file['download_url'])
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                with open(file_path, 'wb') as f:
-                    f.write(response.content)
-                print(f"Downloaded {file_path}")
-        elif file['type'] == 'dir':
-            new_local_repo_dir = os.path.join(LOCAL_REPO_DIR, file['name'])
-            process_github_contents(file['_links']['self'], new_local_repo_dir)
-
-        # Example condition: check if file does not exist or is outdated
-        
-process_github_contents('https://api.github.com/repos/Ploso0247/ballotreader/contents/', script_dir)
 
 
 
@@ -1039,6 +1004,11 @@ what side you lose most on, check the stats page.<br><br>
         self.home_label.setWordWrap(True)
         self.home_label.setMaximumWidth(600)
         self.container_layout.addWidget(self.home_label)
+        
+        self.check_for_updates_button = QPushButton('Check for updates')
+        self.check_for_updates_button.setToolTip("Check this program's source repository on github for any new files")
+        self.check_for_updates_button.clicked.connect(self.checkForUpdates)
+        self.container_layout.addWidget(self.check_for_updates_button)
 
         print("Creating the error_label")
         self.error_label = QLabel("Here's the log! This gives you status updates.<br>")
@@ -1580,7 +1550,56 @@ what side you lose most on, check the stats page.<br><br>
         
         with open('data/settings.json', 'w') as file:
             json.dump(config, file, indent=4)
-               
+    
+    
+    def checkForUpdates(self):
+        response = requests.get('https://api.github.com/repos/Ploso0247/ballotreader/contents/log.json?ref=main', headers={ "Accept": "application/vnd.github.v3.raw" })
+        if response.status_code == 200:
+            file_content = json.loads(response.text)
+
+            keys = list(file_content.keys())[:2]
+            print(keys[1])
+            newestVersion = keys[1]
+            
+            paths = sum([file_content[key] for key in keys], [])
+            print("Checking ", paths)
+            
+            localpaths = []
+            with open('log.json', 'r') as file:
+                local_log_content = json.load(file)
+                keys = list(local_log_content.keys())[:2]
+                thisVersion = keys[1]
+                localpaths = sum([local_log_content.get(key, []) for key in keys], [])
+            print(set(paths))
+            print(set(localpaths))
+            if set(paths) == set(localpaths):
+                self.on_status_update(f"No update available! Newest Version: {newestVersion}. Your Version: {thisVersion}")
+            else:
+                msg = QMessageBox()
+                msg.setWindowTitle("Update Available")
+                msg.setText(f"Update available. Do you want to update from version {thisVersion} to {newestVersion}?")
+                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                retval = msg.exec_()
+                print("not same. update")
+                    
+                if retval == QMessageBox.Yes:
+                    for index, path in enumerate(paths):
+                        file_api_url = f'https://api.github.com/repos/Ploso0247/ballotreader/contents/{path}?ref=main'
+                        response2 = requests.get(file_api_url, headers={"Accept": "application/vnd.github.v3.raw"})
+                        if response2.status_code == 200:
+                            print("Writing!", path)
+                            self.on_status_update(f"Updating/downloading {path} ({index + 1} of {len(paths)})")
+                            directory = os.path.dirname(path)
+                            if directory:  # Check if the directory string is not empty
+                                os.makedirs(directory, exist_ok=True)
+                            with open(path, 'wb') as file:
+                                file.write(response2.content)
+                    self.on_status_update("Update complete!")
+        else:
+            print("Failed to download log")
+        
+        
+        
     def erase_databases(self):
         print("Confirming erasing the database")
         reply = QMessageBox.question(self, 'Confirm Erase', 
