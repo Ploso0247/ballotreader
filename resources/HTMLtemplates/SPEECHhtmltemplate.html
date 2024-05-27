@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+
+  <style>
+
+  body,
+  div,
+  em,
+  h1,
+  html,
+  p,
+  strong {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: 0;
+    color: #000;
+  }
+  body {
+    font-family: Open Sans, Arial, sans-serif;
+    font-size: 14px;
+    background-color: #fff;
+    line-height: 1.7em;
+    font-weight: 500;
+  }
+
+
+  p {
+    padding-bottom: 1em;
+  }
+  p:not(.has-background):last-of-type {
+    padding-bottom: 0;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  .et_pb_with_border {
+    position: relative;
+    border: 0 solid #000;
+  }
+
+  .et_pb_section div.et_pb_row .et_pb_column .et_pb_module:last-child {
+      margin-bottom: 0;
+    }
+    .et_pb_gutters3 .et_pb_column {
+      margin-right: 5.5%;
+      margin-bottom: 0
+    }
+    .et_pb_gutters3 .et_pb_column_4_4 {
+      width: 100%;
+    }
+    .et_pb_gutters3 .et_pb_column_4_4 .et_pb_module {
+      margin-bottom: 2.75%;
+    }
+    .et_pb_gutters3 .et_pb_column_1_2 {
+      width: 47.25%;
+    }
+    .et_pb_gutters3 .et_pb_column_1_2 .et_pb_module {
+      margin-bottom: 5.82%;
+    }
+    .et_pb_gutters3 .et_pb_column_1_4 {
+      width: 20.875%;
+    }
+    .et_pb_gutters3 .et_pb_column_1_4 .et_pb_module {
+      margin-bottom: 13.174%;
+    }
+
+  .et_pb_section {
+    position: relative;
+    padding: 4% 0;
+  }
+  .et_pb_row {
+    width: 80%;
+    min-width: 930px;
+    margin: auto;
+    position: relative;
+    padding: 2% 0;
+  }
+  .et_pb_row:after {
+    content: "";
+    display: block;
+    clear: both;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+    width: 0;
+  }
+  .et_pb_column {
+    float: left;
+    position: relative;
+    z-index: 2;
+    min-height: 1px;
+  }
+
+  .et_pb_row .et_pb_column.et-last-child,
+  .et_pb_row .et_pb_column:last-child {
+    margin-right: 0 !important;
+  }
+  .et_pb_text > :last-child {
+    padding-bottom: 0;
+  }
+  .et_pb_text_inner {
+    position: relative;
+  }
+  @media only screen and (min-width: 1350px) {
+    .et_pb_row {
+      padding: 27px 0;
+    }
+    .et_pb_section {
+      padding: 54px 0;
+    }
+  }
+  .et_pb_section_0 {
+    border-width: 4px;
+    border-style: groove;
+    border-color: #000;
+  }
+  .et_pb_section_0.et_pb_section {
+    padding: 0;
+  }
+  .et_pb_row_0.et_pb_row {
+    padding-bottom: 0 !important;
+  }
+  h1 {
+    font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+    font-weight: 800;
+    font-size: 100px;
+    padding-bottom: 10px;
+    line-height: 1em;
+    text-align: center;
+  }
+  .et_pb_row_2 {
+    border-width: 2px 2px 0px 2px;
+    border-color: #000;
+  }
+  .et_pb_row_1 {
+    width: 80%;
+    border-width: 2px;
+    border-color: #000;
+  }
+  .et_pb_text_1,
+  .et_pb_text_11,
+  .et_pb_text_14,
+  .et_pb_text_16,
+  .et_pb_text_19,
+  .et_pb_text_2,
+  .et_pb_text_21,
+  .et_pb_text_24,
+  .et_pb_text_26,
+  .et_pb_text_5,
+  .et_pb_text_7,
+  .et_pb_text_9 {
+    font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    width: 100%;
+  }
+
+  .et_pb_text_12,
+  .et_pb_text_15,
+  .et_pb_text_18,
+  .et_pb_text_21,
+  .et_pb_text_7,
+  .et_pb_text_9 {
+    font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    padding-right: 15px !important;
+    margin-right: 0 !important;
+    width: 100%;
+  }
+  .et_pb_text_5 {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  .et_pb_row_2.et_pb_row {
+    padding-bottom: 0px !important;
+          margin-top: 10px !important;
+          margin-bottom: 0px !important;
+          padding-bottom: 0px
+  }
+  .et_pb_text_3 {
+    line-height: 2em;
+    font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 2em;
+    margin-left: 20px !important;
+    width: 27%;
+    max-width: 33%;
+  }
+  .et_pb_text_4 {
+    line-height: 2em;
+    font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    margin-left: -250px !important;
+    width: calc(100% + 250px);
+  }
+  .et_pb_text_4 > div > p {
+  max-height: 64px !important;
+  overflow-y: auto;
+  }
+
+  .et_pb_row_3.et_pb_row {
+    padding-top: 10px !important;
+    margin-top: 0 !important;
+    padding-top: 10px;
+  }
+  .et_pb_row_4 {
+    border-width: 2px 2px 1px 2px;
+    border-color: #000;
+    border-bottom-style: dashed;
+  }
+
+  .et_pb_row_4.et_pb_row {
+    margin-top: 10px !important;
+
+  }
+  .et_pb_row_6,
+  .et_pb_row_8,
+  .et_pb_row_10,
+  .et_pb_row_12 {
+
+  padding: 0 !important;
+  }
+  .et_pb_row_14 {
+
+  padding-top: 0 !important;
+  }
+
+
+
+
+  .et_pb_row_10,
+  .et_pb_row_11,
+  .et_pb_row_12,
+  .et_pb_row_13,
+  .et_pb_row_14,
+  .et_pb_row_4,
+  .et_pb_row_5,
+  .et_pb_row_6,
+  .et_pb_row_7,
+  .et_pb_row_8,
+  .et_pb_row_9 {
+    width: 60%;
+    min-width: 930px !important
+  }
+  .et_pb_text_10,
+  .et_pb_text_13,
+  .et_pb_text_15,
+  .et_pb_text_18,
+  .et_pb_text_20,
+  .et_pb_text_23,
+  .et_pb_text_25,
+  .et_pb_text_6 {
+    font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    padding-left: 0 !important;
+    width: 100%;
+  }
+
+
+  .et_pb_text_6,
+    .et_pb_text_8,
+    .et_pb_text_11,
+    .et_pb_text_14,
+    .et_pb_text_17,
+    .et_pb_text_20 {
+      font-family: 'Times New Roman', Georgia, "Times New Roman", serif;
+      font-size: 16px;
+      margin-left: 15px !important;
+      width: 100%
+      }
+
+  .et_pb_text_17,
+  .et_pb_text_22,
+  .et_pb_text_27,
+  .et_pb_text_8 {
+    font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+    width: 100%;
+  }
+
+
+
+  .et_pb_text_28 {
+    font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    padding-left: 0 !important;
+    margin-bottom: 10px !important;
+    width: 100%;
+  }
+  .et_pb_row_1.et_pb_row{
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .et_pb_text_3.et_pb_module {
+  margin-left: 10px;
+
+
+  }
+    .et_pb_row_3 {
+    border-width: 0 2px 2px 2px;
+    border-color: #000;
+  }
+    
+    .et_pb_row_10,
+    .et_pb_row_4,
+    .et_pb_row_6,
+    .et_pb_row_8 {
+      border-top-color: #000;
+      border-right-color: #000;
+      border-left-color: #000;
+      border-right-width: 2px;
+      border-left-width: 2px;
+    }
+    .et_pb_row_5,
+    .et_pb_row_7,
+    .et_pb_row_9,
+    .et_pb_row_10,
+    .et_pb_row_11,
+    .et_pb_row_12,
+    .et_pb_row_13 {
+      border-right-width: 2px;
+      border-left-width: 2px;
+      border-right-color: #000;
+      border-left-color: #000;
+    }
+    
+    .et_pb_row_14 {
+      border-right-width: 2px;
+      border-bottom-width: 2px;
+      border-left-width: 2px;
+      border-right-color: #000;
+      border-bottom-color: #000;
+      border-left-color: #000;
+    }
+    
+
+  .rank1 {
+  color: gold;
+  text-shadow: 0px 0px 20px gold;
+
+  }
+  .rank2 {
+  color: silver;
+  text-shadow: 0px 0px 20px silver;
+  }
+  .rank3 {
+  color: brown;
+  text-shadow: 0px 0px 20px brown;
+  }
+  .underline {
+  text-decoration: underline
+  }
+
+  </style>
+
+</head>
+<body class="et_pb_gutters3">
+  <div class="et_pb_with_border et_pb_section et_pb_section_0">
+    <div class="et_pb_row et_pb_row_0">
+      <div class="et_pb_column et_pb_column_4_4">
+        <div class="et_pb_module et_pb_text">
+          <div class="et_pb_text_inner">
+            <h1 class="rank{{rank}}">{{rank}}</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_1">
+      <div class="et_pb_column et_pb_column_1_2">
+        <div class="et_pb_module et_pb_text et_pb_text_1">
+          <div class="et_pb_text_inner">
+            <p style="text-align:right">Tournament:<br/>
+            Speech Type:<br/>
+            Round:<br/>
+            Judge:<br/>
+            Penalties:<br/>
+            Competitor:</p>
+          </div>
+        </div>
+      </div>
+      <div class="et_pb_column et_pb_column_1_2">
+        <div class="et_pb_module et_pb_text et_pb_text_2">
+          <div class="et_pb_text_inner">
+            <p>{{tournament}}<br/>
+            {{speechType}}<br/>
+            {{round}}<br/>
+            <span>{{judge}}</span><br/>
+            {{penalties}}<br/>
+            <span class="underline">{{person}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_2">
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_3">
+        <div class="et_pb_module et_pb_text et_pb_text_3">
+          <div class="et_pb_text_inner">
+            <p>Topic: <br />Time: <br />Comments: </p>
+          </div>
+        </div>
+      </div>
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_4 et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_4">
+          <div class="et_pb_text_inner">
+            <p>{{topic}}
+              <br />{{time}}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_3">
+      <div class="et_pb_column et_pb_column_4_4 et_pb_column_5 et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_5">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left; padding-left: 40px;">
+              <em>{{commBox['comments']}}</em>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_4">
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_6 et_pb_css_mix_blend_mode_passthrough">
+        <div class="et_pb_module et_pb_text et_pb_text_6 et_pb_text_align_right et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left;">
+              <strong>Category</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_7 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_7 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: right;">
+              <strong>Speaker Points</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_5">
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_8 et_pb_css_mix_blend_mode_passthrough">
+        <div class="et_pb_module et_pb_text et_pb_text_8 et_pb_text_align_right et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left;">
+              <strong>{{commBox['category1']}}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_9 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_9 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: right;">
+              <strong>{{commBox['points1']}}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_6">
+      <div class="et_pb_column et_pb_column_4_4 et_pb_column_10 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_10 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left; padding-left: 40px;">
+              <em>{{commBox['comments1']}}</em>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_7">
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_11 et_pb_css_mix_blend_mode_passthrough">
+        <div class="et_pb_module et_pb_text et_pb_text_11 et_pb_text_align_right et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left;">
+              <strong>{{commBox['category2']}}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_12 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_12 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: right;">
+              <strong>{{commBox['points2']}}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_8">
+      <div class="et_pb_column et_pb_column_4_4 et_pb_column_13 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_13 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left; padding-left: 40px;">
+              <em>{{commBox['comments2']}}</em>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_9">
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_14 et_pb_css_mix_blend_mode_passthrough">
+        <div class="et_pb_module et_pb_text et_pb_text_14 et_pb_text_align_right et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left;">
+              <strong>{{commBox['category3']}}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_15 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_15 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: right;">
+              <strong>{{commBox['points3']}}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_10">
+      <div class="et_pb_column et_pb_column_4_4 et_pb_column_16 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_16 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left; padding-left: 40px;">
+              <em>{{commBox['comments3']}}</em>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_11">
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_17 et_pb_css_mix_blend_mode_passthrough">
+        <div class="et_pb_module et_pb_text et_pb_text_17 et_pb_text_align_right et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left;">
+              <strong>{{commBox['category4']}}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_18 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_18 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: right;">
+              <strong>{{commBox['points4']}}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_12">
+      <div class="et_pb_column et_pb_column_4_4 et_pb_column_19 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_19 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left; padding-left: 40px;">
+              <em>{{commBox['comments4']}}</em>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_13">
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_20 et_pb_css_mix_blend_mode_passthrough">
+        <div class="et_pb_module et_pb_text et_pb_text_20 et_pb_text_align_right et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left;">
+              <strong>{{commBox['category5']}}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="et_pb_column et_pb_column_1_2 et_pb_column_21 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_21 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: right;">
+              <strong>{{commBox['points5']}}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="et_pb_with_border et_pb_row et_pb_row_14">
+      <div class="et_pb_column et_pb_column_4_4 et_pb_column_22 et_pb_css_mix_blend_mode_passthrough et-last-child">
+        <div class="et_pb_module et_pb_text et_pb_text_22 et_pb_text_align_left et_pb_bg_layout_dark">
+          <div class="et_pb_text_inner">
+            <p style="text-align: left; padding-left: 40px;">
+              <em>{{commBox['comments5']}}</em>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+
+<script>
+        function createTooltip(targetDiv, categories) {
+    const tooltipDiv = document.createElement("div");
+    tooltipDiv.className = "tooltip";
+
+    const categoryList = document.createElement("div");
+    categoryList.className = "category-list";
+
+    categories.forEach(category => {
+        const categoryItem = document.createElement("div");
+        categoryItem.className = "category-item";
+
+        const categoryName = document.createElement("span");
+        categoryName.className = "category-name";
+        categoryName.textContent = category['name'];
+
+        const categoryValue = document.createElement("span");
+        categoryValue.className = "category-points";
+        categoryValue.textContent = category['points'];
+
+        categoryItem.appendChild(categoryName);
+        categoryItem.appendChild(categoryValue);
+        categoryList.appendChild(categoryItem);
+    });
+
+    tooltipDiv.appendChild(categoryList);
+    targetDiv.insertAdjacentElement("afterend", tooltipDiv);
+}
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            const paulridings = document.querySelector('.him');
+            if (paulridings) {
+            // Create a new div and append it after the target div
+                paulridings.style.cursor = "zoom-in";
+                const categories = {{personSpeakerPoints}};
+                createTooltip(paulridings, categories);
+            }
+        });
+    </script>
+<style>
+
+body,
+div,
+em,
+h1,
+html,
+p,
+strong {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: 0;
+  color: #000;
+}
+body {
+  font-family: Open Sans, Arial, sans-serif;
+  font-size: 14px;
+  background-color: #fff;
+  line-height: 1.7em;
+  font-weight: 500;
+}
+
+
+p {
+  padding-bottom: 1em;
+}
+p:not(.has-background):last-of-type {
+  padding-bottom: 0;
+}
+* {
+  box-sizing: border-box;
+}
+.et_pb_with_border {
+  position: relative;
+  border: 0 solid #000;
+}
+
+.et_pb_section div.et_pb_row .et_pb_column .et_pb_module:last-child {
+    margin-bottom: 0;
+  }
+  .et_pb_gutters3 .et_pb_column {
+    margin-right: 5.5%;
+  }
+  .et_pb_gutters3 .et_pb_column_4_4 {
+    width: 100%;
+  }
+  .et_pb_gutters3 .et_pb_column_4_4 .et_pb_module {
+    margin-bottom: 2.75%;
+  }
+  .et_pb_gutters3 .et_pb_column_1_2 {
+    width: 47.25%;
+  }
+  .et_pb_gutters3 .et_pb_column_1_2 .et_pb_module {
+    margin-bottom: 5.82%;
+  }
+  .et_pb_gutters3 .et_pb_column_1_4 {
+    width: 20.875%;
+  }
+  .et_pb_gutters3 .et_pb_column_1_4 .et_pb_module {
+    margin-bottom: 13.174%;
+  }
+
+.et_pb_section {
+  position: relative;
+  padding: 4% 0;
+}
+.et_pb_row {
+  width: 80%;
+  min-width: 930px;
+  margin: auto;
+  position: relative;
+  padding: 2% 0;
+}
+.et_pb_row:after {
+  content: "";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
+  width: 0;
+}
+.et_pb_column {
+  float: left;
+  background-size: cover;
+  background-position: 50%;
+  position: relative;
+  min-height: 1px;
+}
+  .et_pb_row .et_pb_column:last-child {
+    margin-right: 0 !important;
+  }
+.et_pb_text > :last-child {
+  padding-bottom: 0;
+}
+.et_pb_text_inner {
+  position: relative;
+}
+@media only screen and (min-width: 1350px) {
+  .et_pb_row {
+    padding: 27px 0;
+  }
+  .et_pb_section {
+    padding: 54px 0;
+  }
+}
+.et_pb_section_0 {
+  border-width: 4px;
+  border-style: groove;
+  border-color: #000;
+}
+.et_pb_section_0.et_pb_section {
+  padding: 0;
+}
+.et_pb_row_0.et_pb_row {
+  padding-bottom: 0 !important;
+}
+h1 {
+  font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+  font-weight: 800;
+  font-size: 100px;
+  padding-bottom: 10px;
+  line-height: 1em;
+  text-align: center;
+}
+.et_pb_row_1,
+.et_pb_row_2 {
+  border-width: 2px;
+  border-color: #000;
+}
+.et_pb_row_1 {
+  width: 80%;
+}
+.et_pb_text_1,
+.et_pb_text_11,
+.et_pb_text_14,
+.et_pb_text_16,
+.et_pb_text_19,
+.et_pb_text_2,
+.et_pb_text_21,
+.et_pb_text_24,
+.et_pb_text_26,
+.et_pb_text_5,
+.et_pb_text_7,
+.et_pb_text_9 {
+  font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  width: 100%;
+}
+.et_pb_row_2.et_pb_row {
+  margin-top: 10px !important;
+}
+.et_pb_text_3 {
+  font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  padding-bottom: 0 !important;
+  width: 90%;
+}
+.et_pb_text_4 {
+  font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  padding-bottom: 0 !important;
+  width: 95%;
+  max-width: 100%;
+}
+
+.et_pb_row_3.et_pb_row {
+  padding-bottom: 10px !important;
+  margin-top: 10px !important;
+}
+.et_pb_row_10,
+.et_pb_row_11,
+.et_pb_row_3,
+.et_pb_row_4,
+.et_pb_row_5,
+.et_pb_row_6,
+.et_pb_row_7,
+.et_pb_row_8,
+.et_pb_row_9 {
+  width: 60%;
+  min-width: 930px !important
+}
+.et_pb_text_10,
+.et_pb_text_13,
+.et_pb_text_15,
+.et_pb_text_18,
+.et_pb_text_20,
+.et_pb_text_23,
+.et_pb_text_25,
+.et_pb_text_6 {
+  font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  padding-left: 0 !important;
+  width: 100%;
+}
+.et_pb_text_12,
+.et_pb_text_17,
+.et_pb_text_22,
+.et_pb_text_27,
+.et_pb_text_8 {
+  font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+  width: 100%;
+}
+
+.et_pb_row_10.et_pb_row,
+.et_pb_row_4.et_pb_row,
+.et_pb_row_6.et_pb_row,
+.et_pb_row_8.et_pb_row {
+  padding-bottom: 10px !important;
+}
+
+.et_pb_row_5.et_pb_row,
+.et_pb_row_7.et_pb_row,
+.et_pb_row_9.et_pb_row {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.et_pb_row_11.et_pb_row {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 10px !important;
+}
+.et_pb_text_28 {
+  font-family: "Times New Roman", Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  padding-left: 0 !important;
+  margin-bottom: 10px !important;
+  width: 100%;
+}
+.et_pb_row_1.et_pb_row,
+.et_pb_text_3.et_pb_module,
+.et_pb_text_4.et_pb_module {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+  .et_pb_row_3 {
+    border-width: 2px 2px 1px;
+    border-color: #000;
+    border-bottom-style: dashed;
+  }
+  
+  .et_pb_row_10,
+  .et_pb_row_4,
+  .et_pb_row_6,
+  .et_pb_row_8 {
+    border-top-color: #000;
+    border-right-color: #000;
+    border-left-color: #000;
+    border-right-width: 2px;
+    border-left-width: 2px;
+  }
+  .et_pb_row_5,
+  .et_pb_row_7,
+  .et_pb_row_9 {
+    border-right-width: 2px;
+    border-left-width: 2px;
+    border-right-color: #000;
+    border-left-color: #000;
+  }
+  
+  .et_pb_row_11 {
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-right-color: #000;
+    border-bottom-color: #000;
+    border-left-color: #000;
+  }
+  
+  /*My hover element */
+.tooltip {
+        display: block; /* Initially hidden */
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        background: white;
+        border: 2px solid black;
+        z-index: 1000; /* Make sure it appears above other content */
+        left: 30px; /* Position to the right of the paragraph */
+        top: 7.5px;
+        white-space: nowrap;
+        transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition for opacity and visibility */
+}
+    
+        .tooltip::before {
+        content: "";
+        position: absolute;
+        top: -1px;
+        left: -10px; /* Position the arrow correctly relative to the tooltip box */
+        border-style: solid;
+        border-width: 5px 10px 5px 0;
+        border-color: transparent black transparent transparent; /* The right border color should match the tooltip background */
+    }
+
+    p:hover + .tooltip, .tooltip:hover {
+    visibility: visible; /* Make tooltip visible */
+    opacity: 1; /* Fully opaque */
+    overflow: visible;
+}
+
+.category-list {
+    width: 100%; /* Full width of the container */
+    max-width: 300px; /* Limit the maximum width */
+    padding: 10px; /* Padding inside the container */
+    background: #fff; /* White background */
+}
+
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0; /* Vertical padding for each item */
+    background: #fff;
+}
+.tooltip, .category-item {
+    background-color: white !important;
+    z-index: 1000;
+}
+
+.AFFAFF, .NEGNEG { color: green }
+.Win {
+color: green;
+font-weight: bold;
+}
+.AFFNEG, .NEGAFF { color: red }
+.Loss {
+color: red;
+font-style: italic;
+}
+
+.allhim {
+font-weight: bold
+}
+.allhim .comments {
+z-index: -1000;
+}
+
+</style>
+
+</head>
+<body class="et_pb_gutters3">
+<div class="et_pb_with_border et_pb_section et_pb_section_0">
+<div class="et_pb_row et_pb_row_0">
+<div class="et_pb_column et_pb_column_4_4">
+<div class="et_pb_module et_pb_text">
+<div class="et_pb_text_inner">
+<h1 class="{{victorystatus}}">{{capitalizeVictoryStatus}}</h1>
+</div>
+</div>
+</div>
+</div>
+<div class="et_pb_with_border et_pb_row et_pb_row_1">
+<div class="et_pb_column et_pb_column_1_2">
+<div class="et_pb_module et_pb_text et_pb_text_1">
+<div class="et_pb_text_inner">
+<p style="text-align:right">Tournament:<br/>
+Debate Type:<br/>
+Round:<br/>
+Judge:<br/>
+Penalties:<br/>
+Competitors:</p>
+</div>
+</div>
+</div>
+<div class="et_pb_column et_pb_column_1_2">
+<div class="et_pb_module et_pb_text et_pb_text_2">
+<div class="et_pb_text_inner">
+<p>{{tournament}}<br/>
+{{debateStyle}}<br/>
+{{round}}<br/>
+<span class="{{victorystatus}}">{{judge}} ({{decidedSide}})</span><br/>
+{{penalties}}<br/>
+<span class="{{decidedSide}}AFF">{{alphabeticalSpeakers[0]['name']}} (AFF)</span> <em><strong>VS.</strong></em> <span class="{{decidedSide}}NEG">{{alphabeticalSpeakers[1]['name']}} (NEG)</span></p>
+</div>
+</div>
+</div>
+</div>
+<div class="et_pb_with_border et_pb_row et_pb_row_2">
+<div class="et_pb_column et_pb_column_4_4">
+<div class="et_pb_module et_pb_text et_pb_text_3">
+<div class="et_pb_text_inner">
+<p><strong>Reason for decision:</strong></p>
+</div>
+</div>
+<div class="et_pb_module et_pb_text et_pb_text_4">
+<div class="et_pb_text_inner">
+<p>{{RFD}}</p>
+</div>
+</div>
+</div>
+</div>
+<div class="et_pb_with_border et_pb_row et_pb_row_3">
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_5">
+<div class="et_pb_text_inner">
+<p style="text-align:center"><strong>(Dec.) SIDE</strong></p>
+</div>
+</div>
+</div>
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_6">
+<div class="et_pb_text_inner">
+<p><strong>Name</strong></p>
+</div>
+</div>
+</div>
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_7">
+<div class="et_pb_text_inner">
+<p style="text-align:right"><strong>Speaker Rank</strong></p>
+</div>
+</div>
+</div>
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_8">
+<div class="et_pb_text_inner">
+<p style="text-align:left"><strong>Speaker Points</strong></p>
+</div>
+</div>
+</div>
+</div>
+<div class="et_pb_with_border et_pb_row et_pb_row_4">
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_9">
+<div class="et_pb_text_inner">
+<p class="{{speakers[0]['side']}}{{decidedSide}} all{{speakers[0]['him']}}" style="text-align:center">({{speakers[0]['victorystatus']}}) {{speakers[0]['side']}}</p>
+</div>
+</div>
+</div>
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_10">
+<div class="et_pb_text_inner">
+<p class="{{speakers[0]['side']}}{{decidedSide}} all{{speakers[0]['him']}}" style="text-align:left">{{speakers[0]['name']}}</p>
+</div>
+</div>
+</div>
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_11">
+<div class="et_pb_text_inner">
+<p class="{{speakers[0]['side']}}{{decidedSide}} all{{speakers[0]['him']}}" style="text-align:right">{{speakers[0]['speakerRank']}}</p>
+</div>
+</div>
+</div>
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_12">
+<div class="et_pb_text_inner">
+<p class="{{speakers[0]['side']}}{{decidedSide}} {{speakers[0]['him']}} all{{speakers[0]['him']}}" style="text-align:left">{{speakers[0]['speakerPoints']}}</p>
+</div>
+</div>
+</div>
+</div>
+<div class="et_pb_with_border et_pb_row et_pb_row_5">
+<div class="et_pb_column et_pb_column_4_4">
+<div class="et_pb_module et_pb_text et_pb_text_13">
+<div class="et_pb_text_inner">
+<p class="all{{speakers[0]['him']}} comments" style="text-align:left;padding-left:240px"><em>{{speakers[0]['comments']}}</em></p>
+</div>
+</div>
+</div>
+</div>
+<div class="et_pb_with_border et_pb_row et_pb_row_6">
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_14">
+<div class="et_pb_text_inner">
+<p class="{{speakers[1]['side']}}{{decidedSide}} all{{speakers[1]['him']}}" style="text-align:center">({{speakers[1]['victorystatus']}}) {{speakers[1]['side']}}</p>
+</div>
+</div>
+</div>
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_15">
+<div class="et_pb_text_inner">
+<p class="{{speakers[1]['side']}}{{decidedSide}} all{{speakers[1]['him']}}" style="text-align:left">{{speakers[1]['name']}}</p>
+</div>
+</div>
+</div>
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_16">
+<div class="et_pb_text_inner">
+<p class="{{speakers[1]['side']}}{{decidedSide}} all{{speakers[1]['him']}}" style="text-align:right">{{speakers[1]['speakerRank']}}</p>
+</div>
+</div>
+</div>
+<div class="et_pb_column et_pb_column_1_4">
+<div class="et_pb_module et_pb_text et_pb_text_17">
+<div class="et_pb_text_inner">
+<p class="{{speakers[1]['side']}}{{decidedSide}} {{speakers[1]['him']}} all{{speakers[1]['him']}}" style="text-align:left">{{speakers[1]['speakerPoints']}}</p>
+</div>
+</div>
+</div>
+</div>
+<div class="et_pb_with_border et_pb_row et_pb_row_11">
+<div class="et_pb_column et_pb_column_4_4">
+<div class="et_pb_module et_pb_text et_pb_text_28">
+<div class="et_pb_text_inner">
+<p class="all{{speakers[1]['him']}} comments" style="text-align:left;padding-left:240px"><em>{{speakers[1]['comments']}}</em></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
