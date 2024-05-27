@@ -70,7 +70,7 @@ def process_github_contents(APIURL, LOCAL_REPO_DIR):
                 norm_path = os.path.normpath(file['path'])
                 parts = norm_path.split(os.sep)
                 print(parts)
-                if not os.path.exists(os.path.join(script_dir, parts[0])) and (parts[0] == 'pypeteer-chrome' or parts[0] == 'WPy64-31160' or parts[1] == 'chrome-win' or parts[1] == 'chrome-linux'):
+                if not os.path.exists(os.path.join(script_dir, parts[0])) and (parts[0] == 'pypeteer-chrome' or parts[0] == 'WPy64-31160' or parts[1] == 'chrome-win' or parts[1] == 'chrome-linux' or parts[0] == '.gitattributes' or parts[2] == 'delete.txt'):
                     continue
                 print(f"Downloading new or updated file: {file['path']}")
                 response = requests.get(file['download_url'])

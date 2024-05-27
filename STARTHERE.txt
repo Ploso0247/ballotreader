@@ -1,0 +1,27 @@
+Hey.
+
+You're probably thinking: Where's the .exe file?
+
+Why are there 3 files?
+
+What's a WPy64?
+
+All pretty understandable questions, and all of which can be answered with this:
+
+I suck at programming.
+
+I'm not a pro programmer, and I don't know how to make everything neatly packaged into one .exe file.
+
+So instead, you have this jumbled mess. The program has a built-in help page you can navigate to, but here's how you get there.
+
+The .vbs file is what you want to open. In short, the vbs opens the .bat file quietly, which runs the necessary commands to open ballots.py, which has all the meat of the program. 
+
+The only files you're meant to access are the downloads folder (I recommend making a shortcut to that wherever you want) and the .vbs file. 
+
+Yes, Windows will ask you for user confirmation because the author is "unknown".
+
+This is because I am not going to pay money to get verified by windows. This popup has nothing to do with actual security.
+
+If you're worried about my program's security, the source code is LITERALLY HERE. You can also scan it with any antivirus you want.
+
+So yeah. Double click on the .vbs and the program will open. I tried to make everything intuitive, but if you're ever confused go to the help page. Everything is explained there.
