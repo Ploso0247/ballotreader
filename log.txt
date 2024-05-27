@@ -1,2 +1,3 @@
 ballots.py
 data/savedBallots.json
+log.txt
