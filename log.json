@@ -1,6 +1,6 @@
 {
     "always": [
-        "log.txt"
+        "log.json"
     ],
     "v1.1": [
         "ballots.py",
