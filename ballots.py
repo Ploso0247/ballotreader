@@ -5,12 +5,11 @@ import json
 import requests
 import shutil
 import random
-import base64
 from pdf2docx import Converter
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QMessageBox, QLineEdit, QLabel, QHBoxLayout, QGroupBox, QCheckBox, QGridLayout, QScrollArea, QTabWidget, QToolButton, QSizePolicy, QGraphicsDropShadowEffect
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtGui import QPixmap, QFontMetrics, QIcon, QFont
+from PyQt5.QtGui import QPixmap, QFontMetrics, QIcon
 import os
 import platform
 from jinja2 import Environment, FileSystemLoader
@@ -541,7 +540,6 @@ class fetchBallots(QThread):
                         },
                         "query": query
                     }
-            #{"operationName":"BallotDebateReport","variables":{"input":{"ballotJudgeId":3312333,"personId":39342}},"query":"mutation BallotDebateReport($input: BallotDebateReportRequestInput) {\n  ballotDebateReport(input: $input) {\n    ballotDebateReportUI {\n      tournamentName\n      eventName\n      roundName\n      firstName\n      lastName\n      judgeFirstName\n      judgeLastName\n      side\n      decision\n      comments\n      reason\n      speakerRank\n      speakerPoints\n      categories {\n        name\n        points\n      }\n      speakers {\n        firstName\n        lastName\n        speakerRank\n        speakerPoints\n        side\n        comments\n      }\n      penalties {\n        name\n      }\n    }\n  }\n}"}
             
             
             
@@ -719,26 +717,6 @@ class fetchBallots(QThread):
         await self.take_screenshot(ballotID, formatted_html)
         # Optionally display the image
         print("Adding a few items to the variables object")
-        sameBallots = []
-        counter = 1
-                    
-                
-                
-                
-        # if userExportName in self.fetchedBallotsToSend or f"{userFileName}_Ballot#1.pdf" in self.ballotsToDownload:
-        #             originalExportPath = userExportName if userExportName in self.ballotsToDownload else ""
-        #             counter = 1
-        #             while userExportName in self.ballotsToDownload or f"{userFileName}_Ballot#{counter}.pdf" in self.ballotsToDownload:
-        #                 counter += 1
-        #                 print("Already exists. Incrementing counter. current path: ", userExportName)
-        #                 userExportName = f"{userFileName}_Ballot#{counter}.pdf"
-        #                 print("New path: ", userExportName)
-                        
-        #             self.ballotsToDownload = [f"{userFileName}_Ballot#1.pdf" if item == originalExportPath else item for item in self.ballotsToDownload]
-        #             if originalExportPath != "" and f"{userFileName}_Ballot#1.pdf" not in self.currentBallotsInDownloads:
-        #                 os.rename(os.path.join("downloads", "pdfs", originalExportPath), os.path.join("downloads", "pdfs", f"{userFileName}_Ballot#1.pdf"))
-        #         self.ballotsToDownload.append(userExportName)
-        
         
         
         variables['index'] = ballotID['index']
@@ -1558,10 +1536,13 @@ what side you lose most on, check the stats page.<br><br>
             file_content = json.loads(response.text)
 
             keys = list(file_content.keys())[:2]
+            
+            
             print(keys[1])
             newestVersion = keys[1]
+            newestVersionChangeLog = keys[1]['description']
             
-            paths = sum([file_content[key] for key in keys], [])
+            paths = sum([file_content[key]['updatedFiles'] for key in keys], [])
             print("Checking ", paths)
             
             localpaths = []
@@ -1577,7 +1558,10 @@ what side you lose most on, check the stats page.<br><br>
             else:
                 msg = QMessageBox()
                 msg.setWindowTitle("Update Available")
-                msg.setText(f"Update available. Do you want to update from version {thisVersion} to {newestVersion}?")
+                msg.setText(f"""Update available. Do you want to update from version {thisVersion} to {newestVersion}? Here's what's new:
+                            {newestVersionChangeLog}
+                            """)
+                
                 msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                 retval = msg.exec_()
                 print("not same. update")
@@ -1919,6 +1903,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.options_button.adjustSize()
         self.error_label.show()
         self.home_label.hide()
+        self.check_for_updates_button.hide()
         self.fetch_data_button.show()
         self.fetch_ballots_button.show()
         self.refresh_button.show()
@@ -1960,6 +1945,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.setStyleSheet(self.styleSheet())
         self.error_label.show()
         self.home_label.show()
+        self.check_for_updates_button.show()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
         self.refresh_button.hide()
@@ -1993,6 +1979,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.setStyleSheet(self.styleSheet())
         self.error_label.hide()
         self.home_label.hide()
+        self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
         self.refresh_button.hide()
@@ -2023,6 +2010,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.setStyleSheet(self.styleSheet())
         self.error_label.hide()
         self.home_label.hide()
+        self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
         self.refresh_button.hide()
@@ -2053,6 +2041,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.setStyleSheet(self.styleSheet())
         self.error_label.hide()
         self.home_label.hide()
+        self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
         self.refresh_button.hide()
@@ -2083,6 +2072,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.setStyleSheet(self.styleSheet())
         self.error_label.show()
         self.home_label.hide()
+        self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
         self.refresh_button.hide()
@@ -2136,18 +2126,6 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         asyncio.run(self.process_downloading_ballots(sentBallots, download))
         
     async def process_downloading_ballots(self, sentBallots, download):
-        # pdfsDownloadPath = os.path.join("downloads", "pdfs")
-        # jsonsDownloadPath = os.path.join("downloads", "jsons")
-        # docsDownloadPath = os.path.join("downloads", "docs")
-        # if download == 'PDF':
-        #     shutil.rmtree(pdfsDownloadPath)
-        #     os.makedirs(pdfsDownloadPath)
-        # elif download == 'ETHANJOHN':
-        #     shutil.rmtree(jsonsDownloadPath)
-        #     os.makedirs(jsonsDownloadPath)
-        # elif download == 'DOCX':
-        #     shutil.rmtree(docsDownloadPath)
-        #     os.makedirs(docsDownloadPath)
         self.currentBallotsInDownloads = [file for root, dirs, files in os.walk(os.path.join("downloads")) for file in files]
         self.ballotsToDownload = []
         print("Launching the browser to process downloads")

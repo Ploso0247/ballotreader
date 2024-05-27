@@ -1,9 +1,11 @@
 {
-    "always": [
-        "log.json"
-    ],
-    "v1.0": [
-        "ballots.py",
-        "data/savedBallots.json"
-    ]
+    "always": {
+        "updatedFiles": ["log.json"]
+    },
+    "v1.1": {
+        "description": "Updated log.json to include descriptions with every update.\n\nLike this.",
+        "updatedFiles": [
+            "ballots.py"
+        ]
+    }
 }
