@@ -3,7 +3,6 @@
         "log.json"
     ],
     "v1.1": [
-        "ballots.py",
-        "STARTHERE.txt"
+        "ballots.py"
     ]
 }
