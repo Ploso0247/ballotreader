@@ -1,0 +1,17 @@
+126.0.6453.0.manifest
+chrome.dll
+chrome.exe
+chrome_100_percent.pak
+chrome_200_percent.pak
+chrome_elf.dll
+D3DCompiler_47.dll
+debug.log
+del
+files.txt
+icudtl.dat
+libEGL.dll
+libGLESv2.dll
+locales
+mojo_core.dll
+resources.pak
+v8_context_snapshot.bin
