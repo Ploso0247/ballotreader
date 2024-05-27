@@ -5,7 +5,6 @@ import json
 import requests
 import shutil
 import random
-import base64
 from pdf2docx import Converter
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QMessageBox, QLineEdit, QLabel, QHBoxLayout, QGroupBox, QCheckBox, QGridLayout, QScrollArea, QTabWidget, QToolButton, QSizePolicy, QGraphicsDropShadowEffect
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize
@@ -1009,6 +1008,7 @@ what side you lose most on, check the stats page.<br><br>
         self.check_for_updates_button.setToolTip("Check this program's source repository on github for any new files")
         self.check_for_updates_button.clicked.connect(self.checkForUpdates)
         self.container_layout.addWidget(self.check_for_updates_button)
+        self.check_for_updates_button.hide()
 
         print("Creating the error_label")
         self.error_label = QLabel("Here's the log! This gives you status updates.<br>")
@@ -1919,6 +1919,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.options_button.adjustSize()
         self.error_label.show()
         self.home_label.hide()
+        self.check_for_updates_button.hide()
         self.fetch_data_button.show()
         self.fetch_ballots_button.show()
         self.refresh_button.show()
@@ -1960,6 +1961,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.setStyleSheet(self.styleSheet())
         self.error_label.show()
         self.home_label.show()
+        self.check_for_updates_button.show()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
         self.refresh_button.hide()
@@ -1993,6 +1995,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.setStyleSheet(self.styleSheet())
         self.error_label.hide()
         self.home_label.hide()
+        self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
         self.refresh_button.hide()
@@ -2023,6 +2026,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.setStyleSheet(self.styleSheet())
         self.error_label.hide()
         self.home_label.hide()
+        self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
         self.refresh_button.hide()
@@ -2053,6 +2057,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.setStyleSheet(self.styleSheet())
         self.error_label.hide()
         self.home_label.hide()
+        self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
         self.refresh_button.hide()
@@ -2083,6 +2088,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.setStyleSheet(self.styleSheet())
         self.error_label.show()
         self.home_label.hide()
+        self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
         self.refresh_button.hide()
