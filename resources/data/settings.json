@@ -10,7 +10,7 @@
         },
         {
             "setting": "Select most recent tournament and speeches automatically?",
-            "value": false
+            "value": true
         },
         {
             "setting": "Restore legacy styling?",
@@ -18,6 +18,10 @@
         },
         {
             "setting": "Offline mode? (can only view ballots you've viewed before)",
+            "value": false
+        },
+        {
+            "setting": "Automatically install updates on start-up?",
             "value": false
         }
     ],

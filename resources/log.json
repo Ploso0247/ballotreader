@@ -2,7 +2,7 @@
     "always": {
         "updatedFiles": ["log.json"]
     },
-    "v1.1": {
+    "v1.0": {
         "description": "Updated log.json to include descriptions with every update.\n\nLike this.",
         "updatedFiles": [
             "ballots.py"
