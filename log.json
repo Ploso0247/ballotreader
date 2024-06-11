@@ -2,6 +2,11 @@
     "always": {
         "updatedFiles": ["log.json"]
     },
+    "v1.1.1": {
+        "description": "Why did NCFCA suddenly decide in the middle of June that the current year is 2025? This fixes it."
+        "updatedFiles": [
+            "ballots.py"
+        ]
     "v1.1": {
         "description": "Updated log.json to include descriptions with every update.\n\nLike this.",
         "updatedFiles": [
