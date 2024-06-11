@@ -301,6 +301,8 @@ class fetchInfo(QThread):
         }
         }
         """
+                if thisYear not in self.years:
+                    thisYear = max(int(num) for num in self.years)
                 yearToUse = thisYear if not self.year else self.year
                 yearToUse = str(yearToUse)
                 print(yearToUse)
