@@ -7,6 +7,10 @@
         "updatedFiles": [
             "resources/ballots.py",
             "resources/data/settings.json"
+        ],
+        "removedFiles": [
+            "resources/dogs",
+            "resources/dogs.txt"
         ]
     },
     "v1.1.1": {
