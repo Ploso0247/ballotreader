@@ -1,0 +1,36 @@
+{
+    "settings": [
+        {
+            "setting": "Remember my login?",
+            "value": true
+        },
+        {
+            "setting": "Sign me in automatically?",
+            "value": true
+        },
+        {
+            "setting": "Select most recent tournament and speeches automatically?",
+            "value": true
+        },
+        {
+            "setting": "Restore legacy styling?",
+            "value": false
+        },
+        {
+            "setting": "Offline mode? (can only view ballots you've viewed before)",
+            "value": false
+        },
+        {
+            "setting": "Automatically install updates on start-up?",
+            "value": false
+        },
+        {
+            "setting": "Never save any ballot data? (NOT recommended)",
+            "value": false
+        }
+    ],
+    "login": {
+        "email": "trumanjp@att.net",
+        "password": "Z0FBQUFBQm1iZFZ0UUg3NHlfajVkazdWSHA3ajR0Q1V1ZnVNeTBCc3N4eVljM01IQ0FhbThoLWU0V01rWjZ6a1FMbFpPY0FfTktoaW5kTUtVUTVocE1UOGxPWjNFXzczTUE9PQ=="
+    }
+}
