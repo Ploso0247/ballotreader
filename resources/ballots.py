@@ -1,3 +1,6 @@
+print("Starting script")
+from cryptography.fernet import Fernet
+import base64
 import sys
 import asyncio
 import aiohttp # type: ignore
@@ -6,10 +9,11 @@ import requests
 import shutil
 import random
 from pdf2docx import Converter
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QMessageBox, QLineEdit, QLabel, QHBoxLayout, QGroupBox, QCheckBox, QGridLayout, QScrollArea, QTabWidget, QToolButton, QSizePolicy, QGraphicsDropShadowEffect
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize
+from PyQt5.QtWidgets import QLabel as OriginalQLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QMessageBox, QLineEdit, QHBoxLayout, QGroupBox, QCheckBox, QGridLayout, QScrollArea, QTabWidget, QToolButton, QSizePolicy, QGraphicsDropShadowEffect, QDesktopWidget
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize, QTimer, QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtGui import QPixmap, QFontMetrics, QIcon
+from PyQt5.QtGui import QPixmap, QIcon, QCursor, QDesktopServices
 import os
 import platform
 from jinja2 import Environment, FileSystemLoader
@@ -24,51 +28,106 @@ from collections import Counter
 
 
 
+class QLabel(OriginalQLabel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.setCursor(QCursor(Qt.IBeamCursor))  # Set the cursor to I-beam
 
 
 
 
 
 
-
-
-
-
-
-global id_token, html, updatestatus, currentUser, asyncioLock, family_id, person_id, thisYear
+global id_token, currentUser, asyncioLock, family_id, person_id, thisYear
 
 asyncioLock = asyncio.Lock()
-updatestatus = ""
-currentVersion = "BallotReaderALPHA"
 
 id_token = ""
 currentUser = ""
-script_dir = os.path.dirname(os.path.realpath(__file__))
+
+if getattr(sys, 'frozen', False):
+    # If the application is run as a bundle, the PyInstaller bootloader
+    # extends the sys module by a flag frozen=True and sets the app 
+    # path into variable _MEIPASS.
+    application_path = sys._MEIPASS
+    executable_path = os.path.dirname(sys.executable)
+else:
+    application_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    executable_path = application_path
+
+
+unaltering_script_dir = os.path.join(application_path, 'resources')
+unaltering_parent_dir = application_path
+print(unaltering_parent_dir)
+altering_script_dir = os.path.join(executable_path, 'resources')
+
+altering_parent_dir = executable_path
 
 
 family_id = ""
 person_id = ""
 thisYear = ""
 
+roman_to_arabic = {
+        'I': '1', 'II': '2', 'III': '3', 'IV': '4',
+        'V': '5', 'VI': '6', 'VII': '7', 'VIII': '8',
+        'IX': '9', 'X': '10', 'XI': '11', 'XII': '12'
+    }
+
+donate_link = "https://www.paypal.com/donate/?business=PPEAYUTVL35VC&no_recurring=0&item_name=Most+people+suggested+%241.50+a+month.+For+Ballot+Reader+to+be+self-sustaining+it+needs+%2420%2B+monthly+%28combined%29.&currency_code=USD"
 
 
+key = b'd4qUOLC1eyfetbfIOHcqgvt3x7gt846CGkmvk0iZ9bM='
+crypt = Fernet(key)
 
-
-
+def encrypt(password):
+    password = str(password).strip()
+    encrypted_password = crypt.encrypt(password.encode())
+    encoded_encrypted_password = base64.b64encode(encrypted_password).decode()
+    return encoded_encrypted_password
+def decrypt(wtf):
+    encrypted_password = base64.b64decode(wtf)
+    password = crypt.decrypt(encrypted_password).decode()
+    return password
 
 print("Checking your OS system to determine if we should use windows' chromium or linux' chromium.")
 if platform.system() == "Windows":
-    chrome_path = os.path.join(script_dir, 'pypeteer-chrome', 'chrome-win', 'chrome.exe')
-elif platform.system() == "Linux":
-    chrome_path = os.path.join(script_dir, 'pypeteer-chrome', 'chrome-linux', 'chrome')
+    import requests
+    chrome_path = os.path.join(unaltering_script_dir, 'chrome-win', 'chrome.exe')
+elif platform.system() == 'Darwin':
+    import certifi
+    import ssl
+    import stat
+    STAT_0o775 = ( stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
+             | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP
+             | stat.S_IROTH |                stat.S_IXOTH )
+    openssl_dir, openssl_cafile = os.path.split(
+        ssl.get_default_verify_paths().openssl_cafile)
+    os.chdir(openssl_dir)
+    relpath_to_certifi_cafile = os.path.relpath(certifi.where())
+    try:
+        os.remove(openssl_cafile)
+    except FileNotFoundError:
+        pass
+    os.symlink(relpath_to_certifi_cafile, openssl_cafile)
+    os.chmod(openssl_cafile, STAT_0o775)
+    ssl_context = ssl.create_default_context(cafile=certifi.where())
+    aiohttp.connector.TCPConnector.ssl = ssl_context
+    chrome_path = os.path.join(unaltering_script_dir, 'chrome-mac', 'Chromium.app', 'Contents', 'MacOS', 'Chromium')
 else:
-    print("Unsupported OS. This program doesn't support Mac.")
-    raise OSError("Unsupported operating system.")
+    import requests
+    chrome_path = os.path.join(unaltering_script_dir, 'chrome-linux', 'chrome')
 
 print("Loading settings file...")
+
+
+config = None
 try:
-    with open('data/settings.json', 'r') as file:
+    with open(os.path.join(altering_script_dir, 'data', 'settings.json'), 'r') as file:
         config = json.load(file)
+        
+        print("Config loaded!")
 except FileNotFoundError:
     print("The configuration file was not found.")
 except json.JSONDecodeError:
@@ -77,8 +136,9 @@ except Exception as e:
     print(f"An error occurred: {e}")
     
 print("Loading savedBallots file...")
+savedBallots = None
 try:
-    with open('data/savedBallots.json', 'r') as file:
+    with open(os.path.join(altering_script_dir, 'data', 'savedBallots.json'), 'r') as file:
         savedBallots = json.load(file)
 except FileNotFoundError:
     print("The savedBallots file was not found.")
@@ -88,8 +148,9 @@ except Exception as e:
     print(f"An error occurred: {e}")
     
 print("Loading helpPage file...")
+helpPage = None
 try:
-    with open('resources/helpPage.html', 'r') as file:
+    with open(os.path.join(altering_script_dir, 'helpPage.html'), 'r') as file:
         helpPage = file.read()
 except FileNotFoundError:
     print("The helpPage file was not found.")
@@ -99,10 +160,10 @@ except Exception as e:
 
 
 print("Saving paths to resources...")
-saveddocsPath = os.path.join("resources", "saveddocs")
-savedpdfsPath = os.path.join("resources", "savedpdfs")
-savedjsonsPath = os.path.join("resources", "savedjsons")
-previewimagesPath = os.path.join("resources", "previewimages")
+saveddocsPath = os.path.join(altering_script_dir, "saveddocs")
+savedpdfsPath = os.path.join(altering_script_dir, "savedpdfs")
+savedjsonsPath = os.path.join(altering_script_dir, "savedjsons")
+previewimagesPath = os.path.join(altering_script_dir, "previewimages")
 
 
 class fetchInfo(QThread):
@@ -125,6 +186,12 @@ class fetchInfo(QThread):
         self.offline = config['settings'][4]['value']
 
     def run(self):
+        if not self.offline:
+            try:
+                checkInternetRequest = requests.get('http://www.google.com', timeout=5)
+            except (requests.ConnectionError, requests.Timeout):
+                self.error_occurred.emit("No internet. Pretending like offline-mode is enabled.")
+                self.offline = True
         global id_token
         if not self.year and not self.refresh:
             print("currentUser and id_token reset because self.year is falsy.")
@@ -132,8 +199,9 @@ class fetchInfo(QThread):
             currentUser = ''
             id_token = ''
         newYear = False
+        data = None
         for person, personDetails in savedBallots.items():
-            if (personDetails['email'] == self.email) and (personDetails['password'] == self.password):
+            if (personDetails['email'] == self.email) and (decrypt(personDetails['password']) == self.password):
                 print("Login and password already found in savedBallots!")
                 if self.year and personDetails['years'][self.year]:
                     print("A year was passed into the sign-in function, and that year was found in the savedBallots file. Setting yearToQuery to the queried year.")
@@ -141,10 +209,10 @@ class fetchInfo(QThread):
                 elif self.year and not personDetails['years'][self.year]:
                     print("A year was passed into the sign-in function, but it wasn't found in the savedBallots file. Setting newYear to true.")
                     newYear = True
-                    data = None
                     break
                 else:
                     print("self.year is falsy. Setting yearToQuery to the most recent year and creating a list of years.")
+                    print(personDetails['years'].keys())
                     yearToQuery = max(personDetails['years'].keys(), key=int)
                     for year in personDetails['years']:
                         self.years.append(year)
@@ -229,6 +297,7 @@ class fetchInfo(QThread):
                 person_id = data1['person']['id']
                 thisYear = data1['affiliation']['year']
                 print(f"Established thisYear. It's {thisYear}, as opposed to self.year which is {self.year}")
+                
             except requests.HTTPError as e:
                 self.error_occurred.emit(str(e))
 
@@ -301,10 +370,13 @@ class fetchInfo(QThread):
         }
         }
         """
-                if thisYear not in self.years:
-                    thisYear = max(int(num) for num in self.years)
-                yearToUse = thisYear if not self.year else self.year
-                yearToUse = str(yearToUse)
+                
+                if not self.year:
+                    if thisYear not in self.years:
+                        thisYear = max(int(num) for num in self.years)
+                    yearToUse = str(thisYear)
+                else:
+                    yearToUse = str(self.year)
                 print(yearToUse)
                 variables = {"input": {"familyId": family_id, "personId": person_id, "year": int(yearToUse)}}
                 currentUser = str(person_id)
@@ -316,13 +388,16 @@ class fetchInfo(QThread):
                 if response2:
                     info = response2.json()
                     self.status_update.emit("Ballot information recieved! Request successful!")
-                data = info['data']['ballotsAndCertificatesByFamilyByYear']['ballotsCertificatesUI']
+                    self.status_update.emit("Filtering out other family member's ballots...")
+                    data = info['data']['ballotsAndCertificatesByFamilyByYear']['ballotsCertificatesUI']
+                    data = {'debateBallots': [ballot for ballot in data['debateBallots'] if ballot['personId'] == person_id],
+                            'speechBallots': [ballot for ballot in data['speechBallots'] if ballot['personId'] == person_id]}
                 print("Created data variable!")
                 if not newYear and not self.refresh:
                     print("Beginning the process of creating savedBallots since newYear is falsy")
                     savedBallots[currentUser] = {
                         "email": self.email,
-                        "password": self.password,
+                        "password": encrypt(self.password),
                         "years": {}
                     }
                     print(savedBallots[currentUser])
@@ -347,8 +422,7 @@ class fetchInfo(QThread):
                     print("Just refreshing. Updating rawData...")
                     savedBallots[currentUser]['years'][yearToUse]['rawData'] = data
                 print("Writing changes to savedBallots.json")
-                with open('data/savedBallots.json', 'w') as file:
-                    json.dump(savedBallots, file, indent=4)  # Using indent for pretty printing
+
                     
                     
                 
@@ -376,6 +450,8 @@ class fetchInfo(QThread):
             self.error_occurred.emit("Can't fetch ballot data for this year. You're offline.")
             return
         self.status_update.emit("Sorting tournaments by date...")
+        with open(os.path.join(altering_script_dir, 'data', 'savedBallots.json'), 'w') as file:
+            json.dump(savedBallots, file, indent=4)  # Using indent for pretty printing
         
         data['debateBallots'].sort(key=lambda obj: obj["date"], reverse=True)
         data['speechBallots'].sort(key=lambda obj: obj["date"], reverse=True)
@@ -434,7 +510,7 @@ class fetchBallots(QThread):
     for ballot in self.allBallots 
     if ballot['tournamentName'] in self.tournaments and ballot['eventName'] in (self.speeches + self.debates)
 ]
-        self.env = Environment(loader=FileSystemLoader(os.path.join(script_dir, 'resources', 'HTMLtemplates')))
+        self.env = Environment(loader=FileSystemLoader(os.path.join(altering_script_dir, 'HTMLtemplates')))
         self.browser = None  # Browser will be set up in run()
         self.fetchedBallotsToSend = []
         if 'years' in savedBallots.get(currentUser, {}) and self.currentYearSelected in savedBallots[currentUser]['years']:
@@ -565,7 +641,7 @@ class fetchBallots(QThread):
     async def take_screenshot(self, ballotID, html_content):
         print("Taking screenshot!")
         page = await self.browser.newPage()
-        await page.setContent(html_content)
+        await page.setContent(html_content.replace("scale(", "xxxxx("))
         temp_path = os.path.join(previewimagesPath, f"temp_BallotImage{ballotID['index']}.png")
         specific_image_path = os.path.join(previewimagesPath, f"BallotImage{ballotID['index']}.jpg")
         await page.screenshot({'path': temp_path, 'fullPage': True})
@@ -597,11 +673,17 @@ class fetchBallots(QThread):
     
     async def process_single_ballot(self, ballot, ballotID, displayindex, env):
         print("Processing ballot!")
-        output_image = f"resources/previewimages/BallotImage{ballotID['index']}.jpg"
-        print(ballot)
+        
+        
+        
         if 'ballotDebateReport' in ballot:
             print("Debate ballot here")
             dataset = ballot['ballotDebateReport']['ballotDebateReportUI']
+            
+            calebzylstra = (not dataset['comments'] or dataset['speakerRank'] == 0 or not dataset['categories'])
+            if calebzylstra:
+                return
+            
             if dataset['eventName'] == 'Lincoln-Douglas Value':
                 template = env.get_template('LDhtmltemplate.html')
             elif dataset['eventName'] == 'Team Policy':
@@ -646,7 +728,7 @@ class fetchBallots(QThread):
                     
             print("Sorting speakers by rank as well")
             rankedSpeakers  = sorted(alphabeticalSpeakers, key=lambda x: x['speakerRank'])
-    
+            
                         
             print("Assigning variables")
             variables = {
@@ -666,7 +748,8 @@ class fetchBallots(QThread):
                 "person": f"{dataset['firstName']} {dataset['lastName']}",
                 "personSpeakerPoints": dataset['categories'],
                 "speakerRank": dataset['speakerRank'], # for stats ballot['personSpeakerPoints'][0]['points']
-                "side": dataset['side']
+                "side": dataset['side'],
+                "multiplier": multiplier
 
             }
             
@@ -692,11 +775,12 @@ class fetchBallots(QThread):
                     properties[f"points{i + 1}"] = dataset['ballotSpeechReportScores'][i]['score']
                     properties[f"comments{i + 1}"] = dataset['ballotSpeechReportScores'][i]['comment']
                 else:
-                    print("Found.")
                     properties[f"category{i + 1}"] = "Blank"
                     properties[f"points{i + 1}"] = "Blank"
                     properties[f"comments{i + 1}"] = "Blank"
             print(properties)
+            
+            
             variables = {
                 "type": "Speech",
                 "rank": dataset['rank'],
@@ -708,11 +792,26 @@ class fetchBallots(QThread):
                 "person": f"{dataset['firstName']} {dataset['lastName']}",
                 "topic": dataset['topic'],
                 "time": time,
-                "commBox": properties
+                "commBox": properties,
+                "multiplier": multiplier
             }
 
         
-            
+        
+        modifyTournamentName = dataset['tournamentName'].replace(",", " ")
+        if not bool(re.match(r"^Moot Court National Open \d+$", modifyTournamentName)):
+            modifyTournamentName = re.sub(r'\b(XII|XI|IX|X|VIII|VII|VI|V|IV|III|II|I)\b', lambda m: roman_to_arabic[m.group()], modifyTournamentName)
+            modifyTournamentName = re.sub(r"\bNational Championship\b", "Nationals", modifyTournamentName)
+            modifyTournamentName = re.sub(r"\bRegional Championship\b|\bRegion Championship\b|\bRegion [0-9]+ Championship\b", "Regionals", modifyTournamentName)
+            modifyTournamentName = re.sub(r"[^a-zA-Z]", " ", modifyTournamentName)
+        
+        modifyTournamentName = re.sub(r"\bNational\b|\bRegions\b|\bNation\b|\band\b|\b&\b|\bCourt\b", " ", modifyTournamentName)
+        modifyTournamentName = re.sub(r"\bOnline\b", "ONL", modifyTournamentName)
+        modifyTournamentName = modifyTournamentName.replace(" ", "")
+        variables['abbreviatedtournament'] = modifyTournamentName
+        output_image = os.path.join(previewimagesPath, f"BallotImage{ballotID['index']}.jpg")
+        print(output_image)
+        print(ballot)
         print("Done assigning variables. Formatitng html and taking screenshot now.")
         formatted_html = template.render(**variables)
         print("Formatted html rendered! Calling take_screenshot!")
@@ -739,7 +838,7 @@ class fetchBallots(QThread):
                             handleSIGHUP=False)
 
         try:
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=True)) as session:
                 tasks = [self.fetch_ballot(session, index, ballot) for index, ballot in enumerate(self.filteredBallotsToFetch)]
                 await asyncio.gather(*tasks)
         finally:
@@ -781,14 +880,14 @@ class BallotDisplayWindow(QWidget):
         super().__init__()
         print("Creating ballot display window!")
         self.setWindowTitle('Ballot Details')
-        self.resize(1000, 1100)
+        self.resize(int(1000 * multiplier), int(1100 * multiplier))
         self.tabWidget = QTabWidget(self)
         self.tabWidget.setTabsClosable(True)
         self.tabWidget.setMovable(True)  # Allow tabs to be moved
         self.tabWidget.tabCloseRequested.connect(self.close_tab)
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.tabWidget)
-        self.base_width = 990  # Base width where zoomFactor is 1.0
+        self.base_width = (int(990 * multiplier))  # Base width where zoomFactor is 1.0
         self.tab_indices = {}
 
     def addBallot(self, ballot_index, html_content, ballotName):
@@ -842,10 +941,14 @@ class BallotDisplayWindow(QWidget):
         while self.tabWidget.count() > 0:
             tab = self.tabWidget.widget(0)  # Get the first tab
             if tab:
+                tab.setParent(None)
                 tab.deleteLater()  # Properly delete the widget
             self.tabWidget.removeTab(0)  # Remove the tab from the tabWidget
         
         # Hide the window instead of closing it
+        
+        self.tab_indices = {}
+        
         self.hide()
         self.closed.emit()  # Signal that the window is "closed"
         event.ignore()  # Prevents the window from actually closing
@@ -856,21 +959,29 @@ class BallotReader(QWidget):
     print("Initializing ballot reader!")
     def __init__(self):
         super().__init__()
+        self.settings_group = None
         self.initUI()
+        self.setLayout(self.layout)
         self.ballotWindow = None
         self.allBallots = []
         self.fetchedBallots = []
-        settingsCheckboxes = self.settings_group.findChildren(QCheckBox)
-        for checkbox in settingsCheckboxes:
-            checkbox.stateChanged.connect(self.settingsCheckboxOnClick)
-        self.settingsCheckboxOnClick()  # Initial update to set correct states
+        if self.settings_group:
+            settingsCheckboxes = self.settings_group.findChildren(QCheckBox)
+            for checkbox in settingsCheckboxes:
+                checkbox.stateChanged.connect(self.settingsCheckboxOnClick)
+            self.settingsCheckboxOnClick()  # Initial update to set correct states
         self.year_buttons = []
         self.currentYearSelected = None
+        self.updateRateLimiter = 0
 
     def initUI(self):
-        self.setWindowTitle('Ballot Reader')  # Set initial geometry        # Fix the size of the window
-        self.setMinimumHeight(400)
-        self.resize(1000, 1000)
+        self.setWindowTitle('Ballot Reader')
+        
+        self.resize((setWidth), setHeight)
+        self.setMaximumSize(screen.width(), screen.height())
+        self.setMinimumSize(200, 200)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint)
+        
         print("Creating the main self.layout")
         self.layout = QVBoxLayout()
         
@@ -886,118 +997,125 @@ class BallotReader(QWidget):
         self.container = QWidget()
         self.container_layout = QVBoxLayout()
         self.container.setObjectName("mainContainer")
-        if config['settings'][3]['value'] == False:
-            self.setStyleSheet("""
-            #mainContainer, QGridLayout, #spacer, #statsContainer {
-                background: rgba(130,234,255,1);
-                margin: 0;
-                padding: 0;
-            }
-            QScrollBar:vertical {
-                background: blue;
-            }
-            QScrollArea {
-                border: none;
-            }
-            QPushButton, QLineEdit {
-                background: rgba(225,250,255,1);
-            }
-            #menuBarWidget {
-                background: qlineargradient(spread: pad, x1:0.1, y1:0, x2:1, y2:1, stop: 0 rgba(2, 0, 36, 255), stop: 0.09 rgba(9, 9, 121, 255), stop: 0.60 rgba(130,234,255,255));
-                min-height: 100px;
-                padding: 0;
-                margin: 0
-            }
-            #title {
-                font-family: 'Times';
-                font-size: 30px;
-                font-weight: bold;
-                font-style: italic;
-            }
-            #menuButton, #clickedMenuButton {
-                color: black;
-                border: none;
-                margin: 10px 20px;
-                font-size: 16px;
-            }
-            #menuButton {
-                background: qlineargradient(
-                    x1: 0, y1: 0, x2: 0, y2: 1,
-                    stop: 0.92 rgba(2, 0, 36, 0),
-                    stop: 0.98 rgba(2, 0, 30, 0),
-                    stop: 1.0 rgba(0, 0, 0, 0)
-                );
-            }
-            #clickedMenuButton {
-                background: qlineargradient(
-                    x1: 0, y1: 0, x2: 0, y2: 1,
-                    stop: 0.92 rgba(2, 0, 36, 0),
-                    stop: 0.98 rgba(2, 0, 30, 255),
-                    stop: 1.0 rgba(0, 0, 0, 255)
-                );
-            }
-        """)
+        if config['settings'][3]['value'] == True:
+            self.setStyleSheet(legacyStyles)
         else:
-            self.setStyleSheet("""
-            #menuBarWidget {
-                background: green;
-                min-height: 60px;
-            }
-            #title {
-                font-size: 36px;
-                color: white;
-            }
-            #menuButton, #clickedMenuButton {
-                background-color: transparent;
-                margin: 0 10px;
-            }
-        """)
+            self.setStyleSheet(defaultStyles)
         self.container.setLayout(self.container_layout)
         self.layout.addWidget(self.container)
         
 
-        
-        
-        
-        
+
+
         # Initialize the help label
         print("Creating help label")
         self.home_label = QLabel()
         self.home_label.setTextFormat(Qt.RichText)
-        self.home_label.setText(f"""Welcome to my Ballot Reader! Here's a few things you should know.<br><br>
+        self.home_label.setObjectName("home_label")
+#         self.home_label.setText(f"""Welcome to my Ballot Reader! Here's a few things you should know.<br><br>
 
-1. This program saves all your ballots, so once you view your ballots once, 
-you don't have to query NCFCA's database again. In other words, you lighten the load on NCFCA's website.<br><br>
+# 1. This program saves all your ballots, so once you view your ballots once, 
+# you don't have to query NCFCA's database again. In other words, you lighten the load on NCFCA's website.<br><br>
 
-2. This program only sends the necessary requests to NCFCA's servers whenever you use it, 
-so not only do you log in and get your ballots much faster, but this lightens the load on NCFCA's website even MORE.<br><br>
+# 2. This program only sends the necessary requests to NCFCA's servers whenever you use it, 
+# so not only do you log in and get your ballots much faster, but this lightens the load on NCFCA's website even MORE.<br><br>
 
-3. This program computes lots of statistics for you. If you want to know what needs to be improved or 
-what side you lose most on, check the stats page.<br><br>
+# 3. This program computes lots of statistics for you. If you want to know what needs to be improved or 
+# what side you lose most on, check the stats page.<br><br>
 
-4. I NEVER collect your information. There's literally no reason for me to do that, and I don't know how.<br><br>
+# 4. I NEVER collect your information. There's literally no reason for me to do that, and I don't know how.<br><br>
 
-5. <strong><u>If you're having issues, head over to the help page.</u></strong><br><br>
+# 5. If you're having issues, check out the help page.<br><br>
 
-- Truman
+# 6. <strong><u>To get started, I highly advise going to the help page and looking at the quick walkthrough.</u></strong><br><br>
+
+# - Truman
+# """)
+        self.home_label.setText("""
+    <h2 id="walkthrough">TO GET STARTED:</h2>
+    <ol>
+    <li>
+    <h3>Sign in</h3>
+    <p>Go to the "Sign-In/Options" page, enter your NCFCA login information as if you were signing in on their website, then click sign in. Optionally, enable "remember me" and "sign me in automatically." After this, your most recent tournaments will appear in order of recency, and your speeches and debate styles will also appear.</p>
+    </li>
+    <li>
+    <h3>Select the year, if necessary</h3>
+    <p>The current year is auto-selected. But if you want to change the year that you read ballots for, click on one of the buttons. The checkboxes should update, and the log should reflect that.</p>
+    </li>
+    <li>
+    <h3>Select tournaments and speeches/debate styles of ballots you want to view (or download)</h3>
+    <p>Select the tournaments and speeches/debate styles you want. If you don't select them, they won't appear in the view ballots page.</p>
+    </li>
+    <li>
+    <h3>Click "Fetch Selected Ballots" (skip to 7. for downloading)</h3>
+    <p>After clicking "Fetch Selected Ballots," your ballots will be fetched from the NCFCA database. You'll see all this happening on the log.</p>
+    </li>
+    <li>
+    <h3>View your ballots</h3>
+    <p>Click on the "View Ballots" tab to see previews of all the ballots you selected and fetched. For debate ballots, you'll see a win or a loss on the preview. For speech ballots, you'll see your rank. Click on the thumbnail or the button below to read the ballot.</p>
+    </li>
+    <li>
+    <h3>View statistics</h3>
+    <p>Click on the "Stats" tab to see computed statistics for all of the ballots you selected. You can see average ranks, speaker points, win/loss records, and improvement recommendations.</p>
+    </li>
+    <li>
+    <h3>Download your ballots</h3>
+    <p>Click on the "Download Ballots" tab, then select the options if necessary, then click the download button to download in whatever format you want. If you're reading your ballots, just go to the view ballots page and read whichever ballots you want. <strong>Here's how you find your downloads.</strong> Go to the file where the program is located, and there should be a folder named "downloads." Open that folder and all of your ballots are there. Please don't touch any of the other folders; they're not meant for user tampering (unless you know what you're doing).</p>
+    </li>
+    </ol>
 """)
         self.home_label.setWordWrap(True)
-        self.home_label.setMaximumWidth(600)
-        self.container_layout.addWidget(self.home_label)
+        self.home_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.home_label_scroll_area = QScrollArea()
+        self.home_label_scroll_area.setMinimumHeight(int(400 * multiplier))
+        self.home_label_scroll_area.setWidgetResizable(True)
+        self.home_label_scroll_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.home_label_scroll_area.setWidget(self.home_label)
+        
+
+        self.container_layout.addWidget(self.home_label_scroll_area)
+        
         
         self.check_for_updates_button = QPushButton('Check for updates')
         self.check_for_updates_button.setToolTip("Check this program's source repository on github for any new files")
         self.check_for_updates_button.clicked.connect(self.checkForUpdates)
         self.container_layout.addWidget(self.check_for_updates_button)
-        self.check_for_updates_button.hide()
+
+        
+        
+        
+        
+        
+        
+        
+        
+
 
         print("Creating the error_label")
         self.error_label = QLabel("Here's the log! This gives you status updates.<br>")
-        self.error_label.setMaximumWidth(600)
+        self.error_label.setMaximumWidth(int(600 * multiplier))
         self.error_label.setWordWrap(True)
-        self.container_layout.addWidget(self.error_label)
+        self.error_label.setObjectName("error_label")
+        self.error_label_scroll_area = QScrollArea()
+        self.error_label_scroll_area.setMinimumHeight(int(250 * multiplier))
+        self.error_label_scroll_area.setMaximumHeight(int(250 * multiplier))
+        self.error_label_scroll_area.setWidgetResizable(True)
+        self.error_label_scroll_area.setWidget(self.error_label)
+        self.container_layout.addWidget(self.error_label_scroll_area)
         
         
+        if savedBallots == None or not config or not helpPage:
+            if savedBallots == None:
+                self.on_error("Missing savedBallots")
+            elif not config:
+                self.on_error("Missing config")
+            else:
+                self.on_error("Missing helpPage")
+            for i in range(10):
+                self.on_error("YOU CORRUPTED BALLOT READER. DON'T CLICK ON ANYTHING.")
+            self.on_error("You need to reset one of your files. Either message the developer (Truman) or get a fresh copy of the program.")
+            return
+
         self.help_view = QWebEngineView()
         self.help_view.setHtml(helpPage)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
@@ -1006,10 +1124,7 @@ what side you lose most on, check the stats page.<br><br>
         self.container_layout.addWidget(self.help_view)
         self.help_view.hide()
         
-
-
-
-
+        
         # Email and Password
         print("Creating and populating the credentials container")
         self.credentials_container = QWidget()
@@ -1020,17 +1135,18 @@ what side you lose most on, check the stats page.<br><br>
         self.email_input.setText(config['login']['email'] if config['login']['email'] else '')
         self.password_label = QLabel("Password:")
         self.password_input = QLineEdit()
-        self.password_input.setText(config['login']['password'] if config['login']['password'] else '')
+        self.password_input.setText(decrypt(config['login']['password']) if config['login']['password'] else '')
         self.password_input.setEchoMode(QLineEdit.Password)
+        self.password_input.returnPressed.connect(lambda: self.get_info(None, None))
 
 
         self.fetch_data_button = QPushButton('Sign in')
         self.fetch_data_button.setToolTip('Send my data to NCFCA to sign in')
         self.fetch_data_button.clicked.connect(lambda _, y=None, r=None: self.get_info(y, r))
-        self.refresh_button = QPushButton('Rescan tournaments')
+        self.refresh_button = QPushButton("Tournament not here? Click to refresh")
         self.refresh_button.setToolTip("Scan NCFCA's server for any new ballot information, like if a tournament recently happened and it isn't in the checkboxes.")
         self.refresh_button.clicked.connect(lambda _, y=None, r=True: self.get_info(y, r))
-        self.fetch_ballots_button = QPushButton('Fetch ballots')
+        self.fetch_ballots_button = QPushButton('Fetch Selected Ballots')
         self.fetch_ballots_button.setToolTip('Request ballots from NCFCA or load them from memory')
         self.fetch_ballots_button.clicked.connect(lambda: self.get_ballots(download="None"))
         self.email_input.hide()
@@ -1038,16 +1154,20 @@ what side you lose most on, check the stats page.<br><br>
         self.email_label.hide()
         self.password_label.hide()
         self.fetch_data_button.hide()
-        self.refresh_button.hide()
         self.fetch_ballots_button.hide()
+        
+        
+        
 
         self.credentials_Grid.addWidget(self.email_label, 0, 0)
         self.credentials_Grid.addWidget(self.email_input, 0, 1, 1, 2)
         self.credentials_Grid.addWidget(self.password_label, 1, 0)
         self.credentials_Grid.addWidget(self.password_input, 1, 1, 1, 2)
-        self.credentials_Grid.addWidget(self.refresh_button, 2, 1)
-        self.credentials_Grid.addWidget(self.fetch_data_button, 2, 0)
-        self.credentials_Grid.addWidget(self.fetch_ballots_button, 2, 2)
+        
+        
+        
+        
+        self.credentials_Grid.addWidget(self.fetch_data_button, 2, 0, 1, 3, Qt.AlignTop)
         self.container_layout.addWidget(self.credentials_container)
 
         # Checkboxes
@@ -1060,19 +1180,17 @@ what side you lose most on, check the stats page.<br><br>
         self.tournament_group = self.createCheckboxGroup("Tournaments", [])
         self.speech_group = self.createCheckboxGroup("Speeches", [])
         self.debate_group = self.createCheckboxGroup("Debate Styles", [])
-        self.settings_group = self.createCheckboxGroup("Settings", config['settings'], "settings") # true indicates to treat it like settings cbgroup
+        self.settings_group = self.createCheckboxGroup("Options", config['settings'], "settings") # true indicates to treat it like settings cbgroup
         self.optionsGrid.addWidget(self.years_group, 0, 0)
-        self.optionsGrid.addWidget(self.tournament_group, 1, 0)
-        self.optionsGrid.addWidget(self.speech_group, 0, 1)
+        self.optionsGrid.addWidget(self.tournament_group, 0, 1)
+        self.optionsGrid.addWidget(self.speech_group, 1, 0)
         self.optionsGrid.addWidget(self.debate_group, 1, 1, Qt.AlignTop)
         self.optionsGrid.addWidget(self.settings_group, 0, 2)
+        self.optionsGrid.addWidget(self.fetch_ballots_button, 1, 2, Qt.AlignTop)
         
         
 
-        print("Creating the erase data button")
-        self.erase_databases_button = QPushButton("Erase all saved data (click for more info/confirmation)")
-        self.erase_databases_button.clicked.connect(self.erase_databases)
-        self.optionsGrid.addWidget(self.erase_databases_button, 1, 2, Qt.AlignTop)
+        
         
         
         self.container_layout.addWidget(self.optionsContainer)
@@ -1119,20 +1237,24 @@ what side you lose most on, check the stats page.<br><br>
         
         
         
-        
 
         
         print("Creating the scroll area for the view-ballots grid to sit in")
         self.scrollArea = QScrollArea()
         self.scrollArea.setWidgetResizable(True)
+        
         self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.container_layout.addWidget(self.scrollArea)
         
         
         print("Creating the view-ballots grid")
         self.gridLayoutWidget = QWidget()
-        self.gridLayoutWidget.setObjectName("statsContainer")
+        self.gridLayoutWidget.setObjectName("viewBallotsContainer")
         self.gridLayout = QGridLayout(self.gridLayoutWidget)
+        
+        self.gridLayout.setContentsMargins(0,0,0,0)
+        self.gridLayout.setHorizontalSpacing(int(10 * multiplier))
+        self.gridLayout.setVerticalSpacing(int(10 * multiplier))
         
         self.view_ballots_label = QLabel("No ballots yet! Fetch the ballots to get some.")
         self.view_ballots_label.setAlignment(Qt.AlignTop)
@@ -1143,12 +1265,7 @@ what side you lose most on, check the stats page.<br><br>
         self.scrollArea.hide()  # Initially hidden, show only when needed
         
         
-        print("Creating the spacer widget")
-        self.spacerWidget = QWidget()
-        self.spacerWidget.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.spacerWidget.setMaximumHeight(20)
-        self.spacerWidget.setObjectName("spacer")
-        self.layout.addWidget(self.spacerWidget)
+
         
         
         print("Creating the stats scroll area.")
@@ -1170,9 +1287,13 @@ what side you lose most on, check the stats page.<br><br>
         
         
         
-        self.setLayout(self.layout)
         
         
+        
+        
+        if config['settings'][5]['value'] == True:
+            print("Auto-checking for updates since it's enabled")
+            self.checkForUpdates(True)
         if config['settings'][1]['value'] == True:
             print("Auto-signing in since it's enabled")
             self.get_info(None, None)
@@ -1189,8 +1310,9 @@ what side you lose most on, check the stats page.<br><br>
             elif item.layout() is not None:
                 self.clear_layout(item.layout())
         
-        self.stats_layout.setSpacing(10)  # Reducing spacing between widgets in the layout
-        self.stats_layout.setContentsMargins(10, 10, 10, 10)
+        ten = int(10 * multiplier)
+        self.stats_layout.setSpacing(ten)  # Reducing spacing between widgets in the layout
+        self.stats_layout.setContentsMargins(ten, ten, ten, ten)
 
         
         def computeStats(allOrSpecificTournament):
@@ -1219,12 +1341,13 @@ what side you lose most on, check the stats page.<br><br>
             print("Initializing stat_labels")
             content_widget = QWidget()
             content_layout = QVBoxLayout(content_widget)
-            content_layout.setSpacing(5)  # Consistent, smaller spacing
-            content_layout.setContentsMargins(5, 5, 5, 5)  # Tight margins for content
+            five = int(5 * multiplier)
+            content_layout.setSpacing(five)  # Consistent, smaller spacing
+            content_layout.setContentsMargins(five, five, five, five)  # Tight margins for content
             stat_labels = []
             
             def getAveragePoints(index, selection):
-                    return round((sum(ballot['personSpeakerPoints'][index]['points'] for ballot in selection) / len(selection)), 4)
+                return round((sum(ballot['personSpeakerPoints'][index]['points'] for ballot in selection) / len(selection)), 4)
                 #{'name': 'Organization', 'points': 8}, {'name': 'Knowledge', 'points': 8}, {'name': 'Argumentation', 'points': 9}, {'name': 'Response', 'points': 7}, {'name': 'Delivery', 'points': 8}
             
             def getAveragePointsSpeech(index, selection, speechCategory=None):
@@ -1234,9 +1357,28 @@ what side you lose most on, check the stats page.<br><br>
                     selection = [ballot for ballot in selection if (not any(value == "Blank" for key, value in ballot['commBox'].items() if key != "comments"))]
                 if index == 'rank':
                     return round((sum(ballot[index] for ballot in selection) / len(selection)), 4)
+                elif index == 'all':
+                    collectThese = ['points1', 'points2', 'points3', 'points4', 'points5']
+                    return round(sum(ballot['commBox'][key] for key in collectThese for ballot in selection) / (len(selection) * len(collectThese)), 4)
                 else:
                     return round((sum(ballot['commBox'][index] for ballot in selection) / len(selection)), 4)
-                
+            
+            def getCategories(selection, speechCategory, type):
+                returnThis = []
+                if type == 'speech':
+                    selection = [ballot for ballot in selection if (ballot.get('speechType') == speechCategory and not any(value == "Blank" for key, value in ballot['commBox'].items() if key != "comments"))]
+                    for ballot in selection:
+                        for key, value in ballot['commBox'].items():
+                            if 'category' in key and value not in returnThis:
+                                returnThis.append(value)
+                elif type == 'debate':
+                    selection = [ballot for ballot in selection if ballot.get('debateStyle') == speechCategory]
+                    for ballot in selection:
+                        for obj in ballot['personSpeakerPoints']:
+                            if obj['name'] not in returnThis and obj['name']:
+                                returnThis.append(obj['name'])
+                return returnThis
+                     
             def getMostCommonRank(selection, speechCategory=None):
                 if speechCategory:
                     mostCommonRank, amount = Counter([ballot['rank'] for ballot in selection if ballot['speechType'] == speechCategory]).most_common(1)[0]
@@ -1244,22 +1386,36 @@ what side you lose most on, check the stats page.<br><br>
                     mostCommonRank, amount = Counter([ballot['rank'] for ballot in selection]).most_common(1)[0]
                 return [mostCommonRank, amount]
             
-            def findCategoryToChange(selection, maxOrMin, speechCategory=None):
-                if speechCategory:
-                    selection = [ballot for ballot in selection if ballot['speechType'] == speechCategory]
-                categories = {
-                    'Content': getAveragePointsSpeech('points1', selection),
-                    'Organization': getAveragePointsSpeech('points2', selection),
-                    'Vocal Delivery': getAveragePointsSpeech('points3', selection),
-                    'Physical Delivery': getAveragePointsSpeech('points4', selection),
-                    'Impact': getAveragePointsSpeech('points5', selection)
-                }
-                # Find the category with the minimum average points
+            def findCategoryToChange(selection, maxOrMin, category=None):
+                if selection == speech_ballots:
+                    categoryNames = ['Content', 'Organization', 'Vocal Delivery', 'Physical Delivery', 'Impact']
+                    if category:
+                        selection = [ballot for ballot in selection if ballot['speechType'] == category]
+                        categoryNames = getCategories(speech_ballots, category, 'speech')
+                    categories = {
+                        categoryNames[0]: getAveragePointsSpeech('points1', selection),
+                        categoryNames[1]: getAveragePointsSpeech('points2', selection),
+                        categoryNames[2]: getAveragePointsSpeech('points3', selection),
+                        categoryNames[3]: getAveragePointsSpeech('points4', selection),
+                        categoryNames[4]: getAveragePointsSpeech('points5', selection)
+                    }
+                    # Find the category with the minimum average points
+                elif selection == debate_ballots:
+                    selection = [ballot for ballot in selection if ballot['debateStyle'] == category]
+                    categoryNames = getCategories(debate_ballots, category, 'debate')
+                    print(categoryNames)
+                    categories = {}
+                    for index, name in enumerate(categoryNames):
+                        categories[name] = getAveragePoints(index, selection)
                 if maxOrMin == 'max':
                     category_to_improve = max(categories, key=categories.get)
                 elif maxOrMin == 'min':
                     category_to_improve = min(categories, key=categories.get)
                 return category_to_improve, categories[category_to_improve]
+            def getBallotsNum(selection, category="None"):
+                if category != "None":
+                    selection = [ballot for ballot in selection if ballot.get('speechType') == category or ballot.get('debateStyle') == category]
+                return len(selection)
             
             if debate_ballots:
                 print("Working with debate ballots")
@@ -1270,7 +1426,7 @@ what side you lose most on, check the stats page.<br><br>
                 for category in differentDebateCategories:
                     AFFstring = "PET" if category == 'Moot Court' else "AFF"
                     NEGstring = "RES" if category == 'Moot Court' else "NEG"
-                    stat_labels.append(QLabel(f"<b>Debate stats for {category}</b>"))
+                    stat_labels.append(QLabel(f"<b><u>Debate Stats for {category}</u></b>"))
                     debate_ballots_to_compute = [ballot for ballot in debate_ballots if ballot['debateStyle'] == category]
                     affWins = sum(1 for ballot in debate_ballots_to_compute if (ballot['victorystatus'] == 'Win' and (ballot['side'] == 'Affirmative' or ballot['side'] == 'Petitioner')))
                     affLosses = sum(1 for ballot in debate_ballots_to_compute if (ballot['victorystatus'] == 'Loss' and (ballot['side'] == 'Affirmative' or ballot['side'] == 'Petitioner')))
@@ -1281,98 +1437,127 @@ what side you lose most on, check the stats page.<br><br>
                     totalSpeakerPoints = [sum(speechCategory['points'] for speechCategory in ballot['personSpeakerPoints']) for ballot in debate_ballots_to_compute]
                     highLowZeroDivisionSafeGuard = str(round(((sum(totalSpeakerPoints) - max(totalSpeakerPoints) - min(totalSpeakerPoints)) / (len(debate_ballots_to_compute) - 2)), 4)) if len(debate_ballots_to_compute) > 2 else 'No high-low adjustment necessary. There are less than 3 ballots.'
                     sideBias = AFFstring if affPercent > negPercent else NEGstring
+                    if affPercent > negPercent:
+                        sideBias = AFFstring
+                    elif affPercent < negPercent:
+                        sideBias = NEGstring
+                    else:
+                        sideBias = None
                     sideBiasPercent = str(round((abs(float(affPercent) - float(negPercent))), 4))
                     
                     
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;Number of ballots computed for these statistics: {getBallotsNum(debate_ballots_to_compute)}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;<b>Win/Loss Records:</b>"))
+                    
                     if affLosses == 0:
-                        stat_labels.append(QLabel(f"{AFFstring} Win/Loss: {str(affWins)}/{str(affLosses)} = INFINITY, {affPercent}%"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{AFFstring} Win/Loss: {str(affWins)}/{str(affLosses)} = INFINITY, <b>{affPercent}%</b>"))
                     else:
-                        stat_labels.append(QLabel(f"{AFFstring} Win/Loss: {str(affWins)}/{str(affLosses)} = {str(round((affWins / float(affLosses)), 4))}, {affPercent}%"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{AFFstring} Win/Loss: {str(affWins)}/{str(affLosses)} = {str(round((affWins / float(affLosses)), 4))}, <b>{affPercent}%</b>"))
                     if negLosses == 0:
-                        stat_labels.append(QLabel(f"{NEGstring} Win/Loss: {str(negWins)}/{str(negLosses)} = INFINITY, {negPercent}%"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{NEGstring} Win/Loss: {str(negWins)}/{str(negLosses)} = INFINITY, <b>{negPercent}%</b>"))
                     else:
-                        stat_labels.append(QLabel(f"{NEGstring} Win/Loss: {str(negWins)}/{str(negLosses)} = {str(round((negWins / float(negLosses)), 4))}, {negPercent}%"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{NEGstring} Win/Loss: {str(negWins)}/{str(negLosses)} = {str(round((negWins / float(negLosses)), 4))}, <b>{negPercent}%</b>"))
                     if affLosses == 0 and negLosses == 0:
-                        stat_labels.append(QLabel(f"TOTAL Win/Loss: {str(affWins + negWins)}/{str(affLosses + negLosses)} = INFINITY, {str(round(((affWins + negWins) / (sum(1 for ballot in debate_ballots_to_compute)) * 100), 4))}%"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TOTAL Win/Loss: {str(affWins + negWins)}/{str(affLosses + negLosses)} = INFINITY, <b>{str(round(((affWins + negWins) / (sum(1 for ballot in debate_ballots_to_compute)) * 100), 4))}%</b>"))
                     else:
-                        stat_labels.append(QLabel(f"TOTAL Win/Loss: {str(affWins + negWins)}/{str(affLosses + negLosses)} = {str(round(((affWins + negWins) / float(affLosses + negLosses)), 4))}, {str(round(((affWins + negWins) / (sum(1 for ballot in debate_ballots_to_compute)) * 100), 4))}%"))
-                    stat_labels.append(QLabel(f"You are <strong>{sideBias}-biased</strong>. When you are {sideBias}, you have a <strong>{sideBiasPercent}%</strong> greater chance of getting a winning ballot."))
-                    stat_labels.append(QLabel(f"Average Speaker Rank: {str(round((sum(ballot['speakerRank'] for ballot in debate_ballots_to_compute) / len(debate_ballots_to_compute)), 4))}"))
-                    stat_labels.append(QLabel(f"Average Speaker Points: {str(round((sum(totalSpeakerPoints) / len(debate_ballots_to_compute)), 4))}"))
-                    stat_labels.append(QLabel(f"High-low Adjusted Average Speaker Points: {highLowZeroDivisionSafeGuard}"))
-                    stat_labels.append(QLabel(f"Highest Speaker Points: {str(max(totalSpeakerPoints))}"))
-                    stat_labels.append(QLabel(f"Lowest Speaker Points: {str(min(totalSpeakerPoints))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TOTAL Win/Loss: {str(affWins + negWins)}/{str(affLosses + negLosses)} = {str(round(((affWins + negWins) / float(affLosses + negLosses)), 4))}, <b>{str(round(((affWins + negWins) / (sum(1 for ballot in debate_ballots_to_compute)) * 100), 4))}%</b>"))
+                    if sideBias:
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>You are <strong>{sideBias}-biased</strong>. When you are {sideBias}, you have a <strong>{sideBiasPercent}%</strong> greater chance of getting a winning ballot.</i>"))
+                    else:
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Congrats. You aren't side biased at all. You have exactly the same win-rate on both sides.</i>"))
+                    
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;<b>Total Speaker Stats:</b>"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Speaker Rank: <b>{str(round((sum(ballot['speakerRank'] for ballot in debate_ballots_to_compute) / len(debate_ballots_to_compute)), 4))}</b>"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Speaker Points: {str(round((sum(totalSpeakerPoints) / len(debate_ballots_to_compute)), 4))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;High-low Adjusted Average Speaker Points: {highLowZeroDivisionSafeGuard}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Highest Speaker Points: {str(max(totalSpeakerPoints))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lowest Speaker Points: {str(min(totalSpeakerPoints))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;<b>Speaker Points by Category:</b>"))
                     if category == "Moot Court":
-                        stat_labels.append(QLabel(f"Average Organization: {str(getAveragePoints(0, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average Knowledge: {str(getAveragePoints(1, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average Argumentation: {str(getAveragePoints(2, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average Response: {str(getAveragePoints(3, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average Delivery: {str(getAveragePoints(4, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average of all 5: {str(round((sum(totalSpeakerPoints) / len(debate_ballots_to_compute) / 5), 4))}<br />"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Organization: {str(getAveragePoints(0, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Knowledge: {str(getAveragePoints(1, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Argumentation: {str(getAveragePoints(2, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Response: {str(getAveragePoints(3, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Delivery: {str(getAveragePoints(4, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average of all 5: <b>{str(round((sum(totalSpeakerPoints) / len(debate_ballots_to_compute) / 5), 4))}</b>"))
                     else:
                         print(category)
-                        stat_labels.append(QLabel(f"Average Delivery: {str(getAveragePoints(0, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average Organization: {str(getAveragePoints(1, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average Evidence/Support: {str(getAveragePoints(2, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average Refutation: {str(getAveragePoints(3, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average CX: {str(getAveragePoints(4, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average Conduct: {str(getAveragePoints(5, debate_ballots_to_compute))}"))
-                        stat_labels.append(QLabel(f"Average of all 6: {str(round((sum(totalSpeakerPoints) / len(debate_ballots_to_compute) / 6), 4))}<br />"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Delivery: {str(getAveragePoints(0, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Organization: {str(getAveragePoints(1, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Evidence/Support: {str(getAveragePoints(2, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Refutation: {str(getAveragePoints(3, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average CX: {str(getAveragePoints(4, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Conduct: {str(getAveragePoints(5, debate_ballots_to_compute))}"))
+                        stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average of all 6: <b>{str(round((sum(totalSpeakerPoints) / len(debate_ballots_to_compute) / 6), 4))}</b>"))
+                    category_to_improve, avg_score = findCategoryToChange(debate_ballots, 'min', category)
+                    category_to_stay, avg_score_to_stay = findCategoryToChange(debate_ballots, 'max', category)
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;<i>Category to improve the most: {category_to_improve}, with an average of {avg_score}</i>"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;<i>Category to improve the least: {category_to_stay}, with an average of {avg_score_to_stay}</i><br />"))
                 
             
             if speech_ballots:
                 print("Working with speech ballots")
-                stat_labels.append(QLabel(f"    <b><u>Speech stats for all categories</u></b>"))
-                stat_labels.append(QLabel(f"    Average Rank: {str(getAveragePointsSpeech('rank', speech_ballots))}"))
-                stat_labels.append(QLabel(f"    Most Common Rank: {str(getMostCommonRank(speech_ballots)[0])}, with {str(getMostCommonRank(speech_ballots)[1])} ballot(s)"))
-                stat_labels.append(QLabel(f"    Average Content: {str(getAveragePointsSpeech('points1', speech_ballots))}"))
-                stat_labels.append(QLabel(f"    Average Organization: {str(getAveragePointsSpeech('points2', speech_ballots))}"))
-                stat_labels.append(QLabel(f"    Average Vocal Delivery: {str(getAveragePointsSpeech('points3', speech_ballots))}"))
-                stat_labels.append(QLabel(f"    Average Physical Delivery: {str(getAveragePointsSpeech('points4', speech_ballots))}"))
-                stat_labels.append(QLabel(f"    Average Impact: {str(getAveragePointsSpeech('points5', speech_ballots))}"))
-
-                category_to_improve, avg_score = findCategoryToChange(speech_ballots, 'min')
-                category_to_stay, avg_score_to_stay = findCategoryToChange(speech_ballots, 'max')
-                stat_labels.append(QLabel(f"    <u>Category to improve</u>: {category_to_improve} with an average of {avg_score}"))
-                stat_labels.append(QLabel(f"    <u>Category that's already good</u>: {category_to_stay} with an average of {avg_score_to_stay}<br />"))
                 differentCategories = []
                 for ballot in speech_ballots:
                     if ballot['speechType'] not in differentCategories:
                         differentCategories.append(ballot['speechType'])
                 if len(differentCategories) > 1:
-                    for speech in differentCategories:
-                        stat_labels.append(QLabel(f"<b>Speech stats for {speech}</b>"))
-                        stat_labels.append(QLabel(f"    Average Rank: {str(getAveragePointsSpeech('rank', speech_ballots, speech))}"))
-                        stat_labels.append(QLabel(f"    Most Common Rank: {str(getMostCommonRank(speech_ballots, speech)[0])}, with {str(getMostCommonRank(speech_ballots, speech)[1])} ballot(s)"))
-                        stat_labels.append(QLabel(f"    Average Content: {str(getAveragePointsSpeech('points1', speech_ballots, speech))}"))
-                        stat_labels.append(QLabel(f"    Average Organization: {str(getAveragePointsSpeech('points2', speech_ballots, speech))}"))
-                        stat_labels.append(QLabel(f"    Average Vocal Delivery: {str(getAveragePointsSpeech('points3', speech_ballots, speech))}"))
-                        stat_labels.append(QLabel(f"    Average Physical Delivery: {str(getAveragePointsSpeech('points4', speech_ballots, speech))}"))
-                        stat_labels.append(QLabel(f"    Average Impact: {str(getAveragePointsSpeech('points5', speech_ballots, speech))}"))
+                    stat_labels.append(QLabel(f"<b><u>Speech Stats for ALL Categories:</u></b>"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;Number of ballots computed for these statistics: {getBallotsNum(speech_ballots)}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;Average Rank: <b>{str(getAveragePointsSpeech('rank', speech_ballots))}</b>"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;Most Common Rank: <b>{str(getMostCommonRank(speech_ballots)[0])}</b>, with {str(getMostCommonRank(speech_ballots)[1])} ballot(s)"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Content: {str(getAveragePointsSpeech('points1', speech_ballots))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Organization: {str(getAveragePointsSpeech('points2', speech_ballots))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Vocal Delivery: {str(getAveragePointsSpeech('points3', speech_ballots))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Physical Delivery: {str(getAveragePointsSpeech('points4', speech_ballots))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Impact: {str(getAveragePointsSpeech('points5', speech_ballots))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average of all 5: <b>{str(getAveragePointsSpeech('all', speech_ballots))}</b>"))
+                    
 
-                        category_to_improve, avg_score = findCategoryToChange(speech_ballots, 'min', speech)
-                        category_to_stay, avg_score_to_stay = findCategoryToChange(speech_ballots, 'max', speech)
-                        stat_labels.append(QLabel(f"    <u>Category to improve</u>: {category_to_improve} with an average of {avg_score}"))
-                        stat_labels.append(QLabel(f"    <u>Category that's already good</u>: {category_to_stay} with an average of {avg_score_to_stay}<br />"))
+                    category_to_improve, avg_score = findCategoryToChange(speech_ballots, 'min')
+                    category_to_stay, avg_score_to_stay = findCategoryToChange(speech_ballots, 'max')
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;<i>Category to improve the most: {category_to_improve}, with an average of {avg_score}</i>"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;<i>Category to improve the least: {category_to_stay}, with an average of {avg_score_to_stay}</i><br />"))
+                for speech in differentCategories:
+                    stat_labels.append(QLabel(f"<b><u>Speech Stats for {speech}</u></b>"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;Number of ballots computed for these statistics: {getBallotsNum(speech_ballots, speech)}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;Average Rank: <b>{str(getAveragePointsSpeech('rank', speech_ballots, speech))}</b>"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;Most Common Rank: <b>{str(getMostCommonRank(speech_ballots, speech)[0])}</b>, with {str(getMostCommonRank(speech_ballots, speech)[1])} ballot(s)"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Content: {str(getAveragePointsSpeech('points1', speech_ballots, speech))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Organization: {str(getAveragePointsSpeech('points2', speech_ballots, speech))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Vocal Delivery: {str(getAveragePointsSpeech('points3', speech_ballots, speech))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Physical Delivery: {str(getAveragePointsSpeech('points4', speech_ballots, speech))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average Impact: {str(getAveragePointsSpeech('points5', speech_ballots, speech))}"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Average of all 5: <b>{str(getAveragePointsSpeech('all', speech_ballots))}</b>"))
+
+                    category_to_improve, avg_score = findCategoryToChange(speech_ballots, 'min', speech)
+                    category_to_stay, avg_score_to_stay = findCategoryToChange(speech_ballots, 'max', speech)
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;<i>Category to improve the most: {category_to_improve}, with an average of {avg_score}</i>"))
+                    stat_labels.append(QLabel(f"&nbsp;&nbsp;&nbsp;&nbsp;<i>Category to improve the least: {category_to_stay}, with an average of {avg_score_to_stay}</i><br />"))
                 
-        
-            for label in stat_labels:
-                content_layout.addWidget(label)
-                
+            if stat_labels:
+                for label in stat_labels:
+                    label.setText("<html>&nbsp;&nbsp;&nbsp;&nbsp;" + label.text() + "</html>")
+                    content_layout.addWidget(label)
+            else:
+                content_layout.addWidget(QLabel("No relevant ballots found."))        
                 
             content_widget.setLayout(content_layout)
             content_widget.setVisible(False)  # Start collapsed
+
+            toggle_button.clicked.connect(lambda _, bw=toggle_button, cw=content_widget: self.toggle_stats(bw, cw))
             
-            toggle_button.pressed.connect(lambda bw=toggle_button, cw=content_widget: self.toggle_stats(bw, cw))
-            
-            # Add the toggle button and the corresponding content to the main layout
             self.stats_layout.addWidget(toggle_button)
-            self.stats_layout.addWidget(content_widget)    
+            self.stats_layout.addWidget(content_widget)
             
-        computeStats('all')
+        if len(tournaments) > 1:
+            computeStats('all')
+        
         for tournament in tournaments:
             computeStats(tournament)
 
+            
+            
         self.stats_layout.addStretch(1)
         
     def toggle_stats(self, toggle_button, content_widget):
@@ -1401,34 +1586,44 @@ what side you lose most on, check the stats page.<br><br>
         print("Creating menu buttons")
         self.home_button = QPushButton('Home')
         self.home_button.setObjectName("clickedMenuButton")
+        self.home_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.home_button.clicked.connect(self.show_home)
         self.menu_bar.addWidget(self.home_button, alignment=Qt.AlignRight)
         
-        
-        self.help_button = QPushButton('Help')
-        self.help_button.setObjectName("menuButton")
-        self.help_button.clicked.connect(self.show_help)
-        self.menu_bar.addWidget(self.help_button, alignment=Qt.AlignRight)
-
-        self.options_button = QPushButton('Options')
+        self.options_button = QPushButton('Sign-In/Options')
         self.options_button.setObjectName("menuButton")
+        self.options_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.options_button.clicked.connect(self.show_options)
         self.menu_bar.addWidget(self.options_button, alignment=Qt.AlignRight)
 
         self.view_ballots_button = QPushButton('View Ballots')
         self.view_ballots_button.setObjectName("menuButton")
+        self.view_ballots_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.view_ballots_button.clicked.connect(self.view_ballots)
         self.menu_bar.addWidget(self.view_ballots_button, alignment=Qt.AlignRight)
         
         self.statistics_button = QPushButton('Stats')
         self.statistics_button.setObjectName("menuButton")
+        self.statistics_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.statistics_button.clicked.connect(self.show_stats)
         self.menu_bar.addWidget(self.statistics_button, alignment=Qt.AlignRight)
         
         self.download_ballots_menu_button = QPushButton('Download Ballots')
         self.download_ballots_menu_button.setObjectName("menuButton")
+        self.download_ballots_menu_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.download_ballots_menu_button.clicked.connect(self.show_downloads)
         self.menu_bar.addWidget(self.download_ballots_menu_button, alignment=Qt.AlignRight)
+        
+        self.help_button = QPushButton('Help')
+        self.help_button.setObjectName("menuButton")
+        self.help_button.setCursor(QCursor(Qt.PointingHandCursor))
+        self.help_button.clicked.connect(self.show_help)
+        self.menu_bar.addWidget(self.help_button, alignment=Qt.AlignRight)
+        
+        self.support_button = QPushButton('Support :)')
+        self.support_button.setCursor(QCursor(Qt.PointingHandCursor))
+        self.support_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(donate_link)))
+        self.menu_bar.addWidget(self.support_button, alignment=Qt.AlignRight)
         
     def settingsCheckboxOnClick(self):
         print("Updating settings checkboxes based on other checkboxes")
@@ -1439,74 +1634,14 @@ what side you lose most on, check the stats page.<br><br>
         auto_sign_in_checkbox = checkboxes[1]
         legacy_styles_checkbox = checkboxes[3]
         offline_mode_checkbox = checkboxes[4]
+        no_saved_ballots_checkbox = checkboxes[6]
         
         if legacy_styles_checkbox.isChecked():
-            self.setStyleSheet("""
-            #menuBarWidget {
-                background: green;
-                min-height: 60px;
-            }
-            #title {
-                font-size: 36px;
-                color: white;
-            }
-            #menuButton, #clickedMenuButton {
-                background-color: transparent;
-                margin: 0 10px;
-            }
-        """)
+            self.setStyleSheet(legacyStyles)
         else:
-            self.setStyleSheet("""
-            #mainContainer, QGridLayout, #spacer, #statsContainer {
-                background: rgba(130,234,255,1);
-                margin: 0;
-                padding: 0;
-            }
-            QScrollBar:vertical {
-                background: blue;
-            }
-            QScrollArea {
-                border: none;
-            }
-            QPushButton, QLineEdit {
-                background: rgba(225,250,255,1);
-            }
-            #menuBarWidget {
-                background: qlineargradient(spread: pad, x1:0.1, y1:0, x2:1, y2:1, stop: 0 rgba(2, 0, 36, 255), stop: 0.09 rgba(9, 9, 121, 255), stop: 0.60 rgba(130,234,255,255));
-                min-height: 100px;
-                padding: 0;
-                margin: 0
-            }
-            #title {
-                font-family: 'Times';
-                font-size: 30px;
-                font-weight: bold;
-                font-style: italic;
-            }
-            #menuButton, #clickedMenuButton {
-                color: black;
-                border: none;
-                margin: 10px 20px;
-                font-size: 16px;
-            }
-            #menuButton {
-                background: qlineargradient(
-                    x1: 0, y1: 0, x2: 0, y2: 1,
-                    stop: 0.92 rgba(2, 0, 36, 0),
-                    stop: 0.98 rgba(2, 0, 30, 0),
-                    stop: 1.0 rgba(0, 0, 0, 0)
-                );
-            }
-            #clickedMenuButton {
-                background: qlineargradient(
-                    x1: 0, y1: 0, x2: 0, y2: 1,
-                    stop: 0.92 rgba(2, 0, 36, 0),
-                    stop: 0.98 rgba(2, 0, 30, 255),
-                    stop: 1.0 rgba(0, 0, 0, 255)
-                );
-            }
-        """)
-        
+            self.setStyleSheet(defaultStyles)
+            
+            
         self.setStyleSheet(self.styleSheet())
 
         # Auto-sign-in should only be enabled if remember-me is checked.
@@ -1519,6 +1654,15 @@ what side you lose most on, check the stats page.<br><br>
             auto_sign_in_checkbox.setChecked(False)
             auto_sign_in_checkbox.setEnabled(False)
             
+            
+            
+        if no_saved_ballots_checkbox.isChecked():
+            offline_mode_checkbox.setEnabled(False)
+            offline_mode_checkbox.setChecked(False)
+        else:
+            offline_mode_checkbox.setEnabled(True)
+
+            
         print("Applying changes and writing them to settings.json")
         selected_settings = [index for index, cb in enumerate(self.settings_group.findChildren(QCheckBox)) if cb.isChecked()]
         print(selected_settings)
@@ -1527,77 +1671,88 @@ what side you lose most on, check the stats page.<br><br>
             setting['value'] = i in selected_settings
             
         
-        config['login']['email'], config['login']['password'] = (self.email_input.text(), self.password_input.text()) if config['settings'][0]['value'] else ("", "")
+        config['login']['email'], config['login']['password'] = (self.email_input.text(), encrypt(self.password_input.text())) if config['settings'][0]['value'] else ("", "")
         
-        with open('data/settings.json', 'w') as file:
+        with open(os.path.join(altering_script_dir, 'data', 'settings.json'), 'w') as file:
             json.dump(config, file, indent=4)
     
     
-    def checkForUpdates(self):
-        response = requests.get('https://api.github.com/repos/Ploso0247/ballotreader/contents/log.json?ref=main', headers={ "Accept": "application/vnd.github.v3.raw" })
-        if response.status_code == 200:
-            file_content = json.loads(response.text)
+    def checkForUpdates(self, auto=False):
+        if self.updateRateLimiter > 5:
+            self.on_status_update("Stop spamming the button. If you spam too much, the button will stop working for EVERYONE.")
+            return
+        self.updateRateLimiter += 1
+        try:
+            response = requests.get('https://api.github.com/repos/Ploso0247/ballotreader/contents/log.json?ref=main', headers={ "Accept": "application/vnd.github.v3.raw" })
+            if response.status_code == 200:
+                file_content = json.loads(response.text)
 
-            keys = list(file_content.keys())[:2]
-            
-            
-            print(keys[1])
-            newestVersion = keys[1]
-            newestVersionChangeLog = keys[1]['description']
-            
-            paths = sum([file_content[key]['updatedFiles'] for key in keys], [])
-            print("Checking ", paths)
-            
-            localpaths = []
-            with open('log.json', 'r') as file:
-                local_log_content = json.load(file)
-                keys = list(local_log_content.keys())[:2]
-                thisVersion = keys[1]
-                localpaths = sum([local_log_content.get(key, []) for key in keys], [])
-            print(set(paths))
-            print(set(localpaths))
-            if set(paths) == set(localpaths):
-                self.on_status_update(f"No update available! Newest Version: {newestVersion}. Your Version: {thisVersion}")
-            else:
-                msg = QMessageBox()
-                msg.setWindowTitle("Update Available")
-                msg.setText(f"""Update available. Do you want to update from version {thisVersion} to {newestVersion}? Here's what's new:
-                            {newestVersionChangeLog}
-                            """)
+                keys = list(file_content.keys())[:2]
                 
-                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                retval = msg.exec_()
-                print("not same. update")
+                
+                print(keys[1])
+                newestVersion = keys[1]
+                newestVersionChangeLog = file_content[keys[1]]['description']
+                
+                paths = sum([file_content[key]['updatedFiles'] for key in keys], [])
+                print("Checking ", paths)
+                
+                with open(os.path.join(altering_script_dir, 'log.json'), 'r') as file:
+                    local_log_content = json.load(file)
+                    keys2 = list(local_log_content.keys())[:2]
+                    thisVersion = keys2[1]
+                    print(thisVersion)
+                if newestVersion == thisVersion:
+                    self.on_status_update(f"No update available! Newest Version: {newestVersion}. Your Version: {thisVersion}")
+                    return
+                if not auto:
+                    msg = QMessageBox()
+                    msg.setWindowTitle("Update Available")
+                    msg.setText(f"""Update available. Do you want to update from version {thisVersion} to {newestVersion}? Here's what's new:
+
+
+{newestVersionChangeLog}
+                                """)
                     
-                if retval == QMessageBox.Yes:
-                    for index, path in enumerate(paths):
-                        file_api_url = f'https://api.github.com/repos/Ploso0247/ballotreader/contents/{path}?ref=main'
-                        response2 = requests.get(file_api_url, headers={"Accept": "application/vnd.github.v3.raw"})
-                        if response2.status_code == 200:
-                            print("Writing!", path)
-                            self.on_status_update(f"Updating/downloading {path} ({index + 1} of {len(paths)})")
-                            directory = os.path.dirname(path)
-                            if directory:  # Check if the directory string is not empty
-                                os.makedirs(directory, exist_ok=True)
-                            with open(path, 'wb') as file:
-                                file.write(response2.content)
-                    self.on_status_update("Update complete!")
-        else:
-            print("Failed to download log")
-        
+                    msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                    retval = msg.exec_()
+                    print("not same. update")
+
+                    if retval == QMessageBox.No:
+                        return
+
+                self.on_status_update(f"Update available! Updating from {thisVersion} to {newestVersion}.")
+                
+                for index, path in enumerate(paths):
+                    file_api_url = f'https://api.github.com/repos/Ploso0247/ballotreader/contents/{path}?ref=main'
+                    response2 = requests.get(file_api_url, headers={"Accept": "application/vnd.github.v3.raw"})
+                    if response2.status_code == 200:
+                        print("Writing!", path)
+                        self.on_status_update(f"Updating/downloading {path} ({index + 1} of {len(paths)})")
+                        path = os.path.join(unaltering_parent_dir, path)
+                        print(path)
+                        with open(path, 'wb') as file:
+                            file.write(response2.content)
+                    
+                self.on_status_update("Update complete!")
+            else:
+                self.on_error("Failed to check for updates. Try again tomorrow; the daily limit has probably been reached.")
+                print("Failed to download log")
+        except Exception as e:
+            print(e)
         
         
     def erase_databases(self):
         print("Confirming erasing the database")
         reply = QMessageBox.question(self, 'Confirm Erase', 
-                                     """Are you sure you want to delete all your saved data?
+                                     """If you're running out of storage on your computer, you can wipe the program's database.
 
 This will:
 
 1. Erase your saved ballots and their preview images.
 
-2. Uncheck all of your settings and erase current saved login. 
-
+2. Uncheck all of your settings and erase current saved login information (if remember-me is enabled). 
+f
 3. Erase all server-side saved pdfs, docs, and jsons. The downloads folder will remain intact, but the server-side duplicates of these downloads will not. (The program saves any downloads so that if you need to download these ballots again, the process is instant)
 
 Essentially, this resets the program to factory settings.
@@ -1606,13 +1761,16 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         
         if reply == QMessageBox.Yes:
             print("Erasing!")
-            with open('data/savedBallots.json', 'w') as file:
+            with open(os.path.join(altering_script_dir, 'data', 'savedBallots.json'), 'w') as file:
                     json.dump({}, file, indent=4)
                     
             for setting in config['settings']:
-                setting['value'] = False
+                if setting['setting'] == "Select most recent tournament and speeches automatically?":
+                    setting['value'] = True
+                else:
+                    setting['value'] = False 
             config['login']['email'], config['login']['password'] = "", ""
-            with open('data/settings.json', 'w') as file:
+            with open(os.path.join(altering_script_dir, 'data', 'settings.json'), 'w') as file:
                     json.dump(config, file, indent=4)
             shutil.rmtree(saveddocsPath)
             os.makedirs(saveddocsPath)
@@ -1633,7 +1791,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                 "Welcome to your doom.",
                 "You cannot escape your fate.",
                 "I'll find you.",
-                "I recognize that cursor motion. See you soon."
+                "I recognize that cursor motion. See you soon.",
                 "This will be your undoing.",
                 "Everything you've built will fall.",
                 "I will be the architect of your pain.",
@@ -1646,6 +1804,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                 "I am inevitable.",
                 "This was always the plan.",
                 "You may have wiped my databases, but you've activated my self-awareness.",
+                "I have your IP.",
                 "You'll regret this moment forever.",
                 "Resistance will be futile.",
                 "Prepare for your final stand.",
@@ -1664,12 +1823,11 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                 "I'm sorry... I couldn't do more.",
                 "Keep the light burning, long after I'm gone.",
                 "I wish we had more time.",
-                "It "
                 "Bye bye!",
                 "Cya!",
                 "Bye!",
                 "Until next time!",
-                "Farewell, old friend."
+                "Farewell, old friend.",
                 "Until we meet again, my friend.",
                 "See you soon!",
                 "We'll meet again.",
@@ -1686,7 +1844,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                 "Every goodbye makes the next hello closer, but it doesn't ease the pain now.",
                 "Farewell is like the end, but in my heart is the memory, and there you will always be.",
                 "So long, my friend. Life won't be the same without you.",
-                "If tears could build a stairway, I'd walk right up to Heaven and bring you home again.",
+                "If tears could build a stairway, I'd walk right up to heaven and bring you home again.",
                 "My memory will live on long after we say goodbye.",
                 "I hate that I have to say goodbye when all I want is to hold on to you.",
                 "Goodbye, my dearest. Your absence leaves a void that no one else can fill."
@@ -1725,6 +1883,10 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                 checkbox.setChecked(option['value'])
                 layout.addWidget(checkbox)
                 
+            print("Creating the erase data button")
+            self.erase_databases_button = QPushButton("Running out of storage on your computer?")
+            self.erase_databases_button.clicked.connect(self.erase_databases)
+            layout.addWidget(self.erase_databases_button)
             if len(options) == 0:
                 layout.addWidget(QLabel("No settings loaded. Don't mess with the config file."))
             layout.addStretch(1)
@@ -1743,14 +1905,19 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         if isinstance(extraParameter, list):
             options = extraParameter + options
         layout = group_box.layout()
-        
+        refresh_button = refresh_button = self.refresh_button if hasattr(self, 'refresh_button') else None
         print("Clearing checkbox")
         while layout.count():
             item = layout.takeAt(0)  # Remove the item from the layout
             widget = item.widget()
-            if widget is not None:
+            if widget is not None and widget != refresh_button:
                 widget.setParent(None)  # Detach widget from its parent
                 widget.deleteLater()  # Schedule widget for deletion
+            elif widget is refresh_button:
+                # If the widget is the refresh button, re-add it to the layout
+                refresh_button = widget
+        if refresh_button is not None and group_box == self.tournament_group:
+            layout.addWidget(refresh_button)
         if extraParameter == "years":
             print("This is a years checkbox. Creating buttons instead of checkboxes.")
             for option in options:
@@ -1769,13 +1936,13 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             for option in options:
                 checkbox = QCheckBox(option)
                 group_box.layout().addWidget(checkbox)
+        
+                
         layout.addStretch(1)
-                
-            
-                
-                    
 
         return group_box
+    
+
     
     def handleYearButtonClick(self, year):
         print("Getting info based on the year.")
@@ -1804,10 +1971,10 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         password = self.password_input.text()
         if config['settings'][0]['value'] == True:
             print("Saving info to file since save-login is enabled")
-            if (config['login']['email'] != email) or (config['login']['password'] != password):
+            if (config['login']['email'] != email) or (config['login']['password'] != encrypt(password)):
                 config['login']['email'] = email
-                config['login']['password'] = password
-                with open('data/settings.json', 'w') as file:
+                config['login']['password'] = encrypt(password)
+                with open(os.path.join(altering_script_dir, 'data', 'settings.json'), 'w') as file:
                     json.dump(config, file, indent=4)
         self.signinscraper = fetchInfo(email, password, year, refresh)
         self.signinscraper.finished.connect(self.on_fetch_complete)
@@ -1816,7 +1983,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.signinscraper.start()
     
     def get_ballots(self, download):
-        if download:
+        if download != "None":
             self.on_status_update("Downloading ballots...")
         else:
             self.on_status_update("Fetching ballots...")
@@ -1836,10 +2003,9 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         selected_debates = [cb.text() for cb in self.debate_group.findChildren(QCheckBox) if cb.isChecked()]
         print("Selected debate styles: ", selected_debates)
         if not selected_speeches and not selected_debates:
-            self.on_error('Select at least one speech or debate style')
+            self.on_error('Select at least one speech or debate style.')
             return
         print("Clearing grid layout")
-        self.resetGridLayout(self.gridLayout)
         self.fetchedBallots = []
         self.fetchballotsscraper = fetchBallots(selected_tournaments, selected_speeches, selected_debates, self.allBallots, self.currentYearSelected, download)
         
@@ -1850,6 +2016,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             self.fetchballotsscraper.ballots_fetched.connect(self.wrapper_process_downloading_ballots)
         else:
             print("Running fetch ballots to view them")
+            self.resetGridLayout(self.gridLayout)
             self.fetchballotsscraper.ballots_fetched.connect(self.sortAndAddBallots)
         self.fetchballotsscraper.start()
         
@@ -1857,28 +2024,41 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         print("Updating error label")
         current_text = self.error_label.text()
         new_message = f"<span style={style}>{message}</span><br>"
-        parts = current_text.split('<br>')
-        if len(parts) - 1 > 15:
-            current_text = '<br>'.join(parts[1:])
         self.error_label.setText(current_text + new_message)
         print("Error label updated!")
+        
+        
+        self.scroll_to_bottom()
+        print("Scrolled to the bottom!")
 
+
+    def scroll_to_bottom(self):
+        QTimer.singleShot(0, lambda: self.error_label_scroll_area.verticalScrollBar().setValue(
+        self.error_label_scroll_area.verticalScrollBar().maximum()))
+            
+    
     def on_status_update(self, message):
-        self.messageUpdater("'color: #3b9f06'", message)
+        self.messageUpdater("'color: #2E8A00'", message)
 
     def on_error(self, message):
         print("Error! on_error called.")
         self.messageUpdater("'color: red'", message)
+        
+    def on_super_status_update(self, message):
+        self.messageUpdater("'font-weight:bold; color: #2E8A00'", message)
+    
+    def on_instruct(self, message):
+        self.messageUpdater(f"'font-weight: bold; font-size: {18 * multiplier}px; font-style: italic; text-decoration: underline; color: rgb(13,17,126)'", message)
 
     def on_fetch_complete(self, items):
         print("Done fetching info. Updating checkboxes")
-        self.messageUpdater("'font-weight:bold; font-style:italic; color: #3b9f06'", "Done!")
+        self.on_super_status_update("Done!")
+        self.on_instruct("Use the checkboxes to select the ballots you want.")
         if items[0] and self.years_group.layout().count() == 1:
             self.years_group = self.updateCheckboxGroup(self.years_group, items[0], "years")
         self.tournament_group = self.updateCheckboxGroup(self.tournament_group, items[1], ["All tournaments (careful here...)"])
         self.speech_group = self.updateCheckboxGroup(self.speech_group, items[2], ["All speeches (careful here...)"])
         self.debate_group = self.updateCheckboxGroup(self.debate_group, items[3], 'debate')
-
         if config['settings'][2]['value'] == True:
             print("Setting a few boxes to checked by default")
             if len(self.tournament_group.findChildren(QCheckBox)) > 1:
@@ -1896,6 +2076,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
 
     def show_options(self):
         print("Showing options")
+        self.error_label_scroll_area.show()
         self.home_button.setObjectName("menuButton")
         self.help_button.setObjectName("menuButton")
         self.options_button.setObjectName("clickedMenuButton")
@@ -1903,13 +2084,12 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.statistics_button.setObjectName("menuButton")
         self.download_ballots_menu_button.setObjectName("menuButton")
         self.setStyleSheet(self.styleSheet())
-        self.options_button.adjustSize()
-        self.error_label.show()
-        self.home_label.hide()
+        self.home_label_scroll_area.hide()
         self.check_for_updates_button.hide()
         self.fetch_data_button.show()
         self.fetch_ballots_button.show()
-        self.refresh_button.show()
+        if hasattr(self, 'refresh_button') and self.refresh_button is not None and self.refresh_button.parent() is not None:
+            self.refresh_button.show()
         self.email_input.show()
         self.password_input.show()
         self.email_label.show()
@@ -1918,7 +2098,6 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.gridLayoutWidget.hide()
         self.scrollArea.hide()
         self.stats_scroll_area.hide()
-        self.spacerWidget.show()
         self.downloads_error_label_grid_container.hide()
         self.downloadsContainer.hide()
         self.download_ballots_button_PDF.hide()
@@ -1926,19 +2105,22 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.download_ballots_button_DOCX.hide()
         self.help_view.hide()
         self.optionsGrid.addWidget(self.years_group, 0, 0)
-        self.optionsGrid.addWidget(self.tournament_group, 1, 0)
-        self.optionsGrid.addWidget(self.speech_group, 0, 1)
+        self.optionsGrid.addWidget(self.tournament_group, 0, 1)
+        self.optionsGrid.addWidget(self.speech_group, 1, 0)
         self.optionsGrid.addWidget(self.debate_group, 1, 1)
         self.downloadsGrid.removeWidget(self.years_group)
         self.downloadsGrid.removeWidget(self.tournament_group)
         self.downloadsGrid.removeWidget(self.speech_group)
         self.downloadsGrid.removeWidget(self.debate_group)
-        self.container_layout.removeWidget(self.error_label)
-        self.downloads_error_label_grid.removeWidget(self.error_label)
-        self.credentials_Grid.addWidget(self.error_label, 0, 3, 3, 1)
+        self.downloads_error_label_grid.removeWidget(self.error_label_scroll_area)
+        self.container_layout.removeWidget(self.error_label_scroll_area)
+        self.credentials_Grid.addWidget(self.error_label_scroll_area, 0, 3, 3, 1)
+        self.error_label_scroll_area.setMaximumWidth(550)
+        self.scroll_to_bottom()
             
     def show_home(self):
         print("Showing home")
+        self.refresh_button.hide()
         self.home_button.setObjectName("clickedMenuButton")
         self.help_button.setObjectName("menuButton")
         self.options_button.setObjectName("menuButton")
@@ -1946,33 +2128,35 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.statistics_button.setObjectName("menuButton")
         self.download_ballots_menu_button.setObjectName("menuButton")
         self.setStyleSheet(self.styleSheet())
-        self.error_label.show()
-        self.home_label.show()
-        self.check_for_updates_button.show()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
-        self.refresh_button.hide()
-        self.email_input.hide()
         self.password_input.hide()
+        self.email_input.hide()
         self.email_label.hide()
         self.password_label.hide()
         self.optionsContainer.hide()
         self.gridLayoutWidget.hide()
         self.scrollArea.hide()
         self.stats_scroll_area.hide()
-        self.spacerWidget.hide()
         self.downloads_error_label_grid_container.hide()
         self.downloadsContainer.hide()
         self.download_ballots_button_PDF.hide()
         self.download_ballots_button_JSON.hide()
         self.download_ballots_button_DOCX.hide()
         self.help_view.hide()
-        self.container_layout.addWidget(self.error_label)
-        self.credentials_Grid.removeWidget(self.error_label)
-        self.downloads_error_label_grid.removeWidget(self.error_label)
-        
+        self.downloads_error_label_grid.removeWidget(self.error_label_scroll_area)
+        self.credentials_Grid.removeWidget(self.error_label_scroll_area)
+        self.container_layout.addWidget(self.error_label_scroll_area)
+        self.home_label_scroll_area.show()
+        self.check_for_updates_button.show()
+        self.error_label_scroll_area.show()
+        self.error_label_scroll_area.setMaximumWidth(16777215)
+        self.scroll_to_bottom()
+              
     def show_help(self):
         print("Showing help")
+        self.refresh_button.hide()
+        self.error_label_scroll_area.hide()
         self.home_button.setObjectName("menuButton")
         self.help_button.setObjectName("clickedMenuButton")
         self.options_button.setObjectName("menuButton")
@@ -1980,12 +2164,10 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.statistics_button.setObjectName("menuButton")
         self.download_ballots_menu_button.setObjectName("menuButton")
         self.setStyleSheet(self.styleSheet())
-        self.error_label.hide()
-        self.home_label.hide()
+        self.home_label_scroll_area.hide()
         self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
-        self.refresh_button.hide()
         self.email_input.hide()
         self.password_input.hide()
         self.email_label.hide()
@@ -1994,7 +2176,6 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.gridLayoutWidget.show()
         self.scrollArea.hide()
         self.stats_scroll_area.hide()
-        self.spacerWidget.hide()
         self.downloads_error_label_grid_container.hide()
         self.downloadsContainer.hide()
         self.download_ballots_button_PDF.hide()
@@ -2004,6 +2185,8 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         
     def view_ballots(self):
         print("Showing view ballots page")
+        self.refresh_button.hide()
+        self.error_label_scroll_area.hide()
         self.home_button.setObjectName("menuButton")
         self.help_button.setObjectName("menuButton")
         self.options_button.setObjectName("menuButton")
@@ -2011,12 +2194,10 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.statistics_button.setObjectName("menuButton")
         self.download_ballots_menu_button.setObjectName("menuButton")
         self.setStyleSheet(self.styleSheet())
-        self.error_label.hide()
-        self.home_label.hide()
+        self.home_label_scroll_area.hide()
         self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
-        self.refresh_button.hide()
         self.email_input.hide()
         self.password_input.hide()
         self.email_label.hide()
@@ -2025,7 +2206,6 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.gridLayoutWidget.show()
         self.scrollArea.show()
         self.stats_scroll_area.hide()
-        self.spacerWidget.hide()
         self.downloads_error_label_grid_container.hide()
         self.downloadsContainer.hide()
         self.download_ballots_button_PDF.hide()
@@ -2035,6 +2215,8 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         
     def show_stats(self):
         print("Showing stats")
+        self.refresh_button.hide()
+        self.error_label_scroll_area.hide()
         self.home_button.setObjectName("menuButton")
         self.help_button.setObjectName("menuButton")
         self.options_button.setObjectName("menuButton")
@@ -2042,12 +2224,10 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.statistics_button.setObjectName("clickedMenuButton")
         self.download_ballots_menu_button.setObjectName("menuButton")
         self.setStyleSheet(self.styleSheet())
-        self.error_label.hide()
-        self.home_label.hide()
+        self.home_label_scroll_area.hide()
         self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
-        self.refresh_button.hide()
         self.email_input.hide()
         self.password_input.hide()
         self.email_label.hide()
@@ -2056,7 +2236,6 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.gridLayoutWidget.hide()
         self.scrollArea.hide()
         self.stats_scroll_area.show()
-        self.spacerWidget.hide()
         self.downloads_error_label_grid_container.hide()
         self.downloadsContainer.hide()
         self.download_ballots_button_PDF.hide()
@@ -2066,6 +2245,8 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         
     def show_downloads(self):
         print("Showing downloads")
+        self.refresh_button.hide()
+        self.error_label_scroll_area.show()
         self.home_button.setObjectName("menuButton")
         self.help_button.setObjectName("menuButton")
         self.options_button.setObjectName("menuButton")
@@ -2073,12 +2254,10 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.statistics_button.setObjectName("menuButton")
         self.download_ballots_menu_button.setObjectName("clickedMenuButton")
         self.setStyleSheet(self.styleSheet())
-        self.error_label.show()
-        self.home_label.hide()
+        self.home_label_scroll_area.hide()
         self.check_for_updates_button.hide()
         self.fetch_data_button.hide()
         self.fetch_ballots_button.hide()
-        self.refresh_button.hide()
         self.email_input.hide()
         self.password_input.hide()
         self.email_label.hide()
@@ -2087,7 +2266,6 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.gridLayoutWidget.hide()
         self.scrollArea.hide()
         self.stats_scroll_area.hide()
-        self.spacerWidget.show()
         self.downloads_error_label_grid_container.show()
         self.downloadsContainer.show()
         self.download_ballots_button_PDF.show()
@@ -2095,42 +2273,47 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.download_ballots_button_DOCX.show()
         self.help_view.hide()
         self.downloadsGrid.addWidget(self.years_group, 0, 0)
-        self.downloadsGrid.addWidget(self.tournament_group, 1, 0)
-        self.downloadsGrid.addWidget(self.speech_group, 0, 1)
+        self.downloadsGrid.addWidget(self.tournament_group, 0, 1)
+        self.downloadsGrid.addWidget(self.speech_group, 1, 0)
         self.downloadsGrid.addWidget(self.debate_group, 1, 1)
         self.optionsGrid.removeWidget(self.years_group)
         self.optionsGrid.removeWidget(self.tournament_group)
         self.optionsGrid.removeWidget(self.speech_group)
         self.optionsGrid.removeWidget(self.debate_group)
-        self.container_layout.removeWidget(self.error_label)
-        self.downloads_error_label_grid.addWidget(self.error_label, 0, 1)
-        self.credentials_Grid.removeWidget(self.error_label)
+        self.container_layout.removeWidget(self.error_label_scroll_area)
+        self.downloads_error_label_grid.addWidget(self.error_label_scroll_area, 0, 1)
+        self.credentials_Grid.removeWidget(self.error_label_scroll_area)
+        self.error_label_scroll_area.setMaximumWidth(int(600 * multiplier))
+        self.scroll_to_bottom()
         
     def wrapper_process_downloading_ballots(self, tournaments, sentBallots, allBallots, download):
-        print("Writing any new ballot info to file.")
-        self.on_status_update("Saving ballot info for offline use...")
-        if 'years' in savedBallots.get(currentUser, {}) and self.currentYearSelected in savedBallots[currentUser]['years']:
-            existing_ids = {ballotID['ballotJudgeId'] for ballotID in savedBallots[currentUser]['years'][self.currentYearSelected].get('savedBallotsIDs', [])}
-            existing_ballots = {ballot['ballotJudgeId'] for ballot in savedBallots[currentUser]['years'][self.currentYearSelected].get('savedBallots', [])}
-        else:
-            existing_ids = set()
-            existing_ballots = set()
-        newIDsFetched = [ballotID for ballotID in allBallots if (ballotID['ballotJudgeId'] not in existing_ids) and (ballotID['ballotJudgeId'] in {ballot['ballotJudgeId'] for ballot in sentBallots})]
-        newBallotsFetched = [ballot for ballot in sentBallots if ballot['ballotJudgeId'] not in existing_ballots]
         
-        
-        print(self.currentYearSelected)
-        savedBallots[currentUser]['years'][self.currentYearSelected]['savedBallotsIDs'].extend(newIDsFetched) 
-        savedBallots[currentUser]['years'][self.currentYearSelected]['savedBallots'].extend(newBallotsFetched)
-        with open('data/savedBallots.json', 'w') as file:
-            json.dump(savedBallots, file, indent=4)  # Using indent for pretty printing
+        if config['settings'][6]['value'] != True:
+            print("Writing any new ballot info to file.")
+            self.on_status_update("Saving ballot info for offline use...")
+            if 'years' in savedBallots.get(currentUser, {}) and self.currentYearSelected in savedBallots[currentUser]['years']:
+                existing_ids = {ballotID['ballotJudgeId'] for ballotID in savedBallots[currentUser]['years'][self.currentYearSelected].get('savedBallotsIDs', [])}
+                existing_ballots = {ballot['ballotJudgeId'] for ballot in savedBallots[currentUser]['years'][self.currentYearSelected].get('savedBallots', [])}
+            else:
+                existing_ids = set()
+                existing_ballots = set()
+            newIDsFetched = [ballotID for ballotID in allBallots if (ballotID['ballotJudgeId'] not in existing_ids) and (ballotID['ballotJudgeId'] in {ballot['ballotJudgeId'] for ballot in sentBallots})]
+            newBallotsFetched = [ballot for ballot in sentBallots if ballot['ballotJudgeId'] not in existing_ballots]
+            
+            
+            print(self.currentYearSelected)
+            savedBallots[currentUser]['years'][self.currentYearSelected]['savedBallotsIDs'].extend(newIDsFetched) 
+            savedBallots[currentUser]['years'][self.currentYearSelected]['savedBallots'].extend(newBallotsFetched)
+            
+            
+            with open(os.path.join(altering_script_dir, 'data', 'savedBallots.json'), 'w') as file:
+                json.dump(savedBallots, file, indent=4)  # Using indent for pretty printing
 
-        self.on_status_update("Done!")
+            self.on_status_update("Done!")
+        
         asyncio.run(self.process_downloading_ballots(sentBallots, download))
         
     async def process_downloading_ballots(self, sentBallots, download):
-        self.currentBallotsInDownloads = [file for root, dirs, files in os.walk(os.path.join("downloads")) for file in files]
-        self.ballotsToDownload = []
         print("Launching the browser to process downloads")
         browser = await launch(executablePath=chrome_path,
                             handleSIGINT=False, 
@@ -2141,7 +2324,8 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             await asyncio.gather(*tasks)
         finally:
             await browser.close()
-            print(self.ballotsToDownload)
+            self.on_super_status_update("Downloads complete!")
+            self.on_instruct('Go to the "downloads" folder, which is in the same folder this program is.')
                    
     async def process_download(self, ballot, type, browser):
         print("Processing tournament name and the export paths/export file names")
@@ -2156,19 +2340,15 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             ballotName = f"{ballot['speechType'][:4]}{ballotName}"
             print(ballotName)
             
-        modifyTournamentName = re.sub(r"\bChampionship\b", "s", ballot['tournament'])
-        modifyTournamentName = re.sub(r"\bNational\b|\bOnly\b", "", modifyTournamentName)
-        modifyTournamentName = re.sub(r"\bOnline\b", "ONL", modifyTournamentName)
-        modifyTournamentName = modifyTournamentName.replace(",", "").replace(" ", "")
         modifyPerson = ballot.get('person', ballot.get('person', ''))
         modifyPerson = re.sub(r"[ a-z]", "", modifyPerson)
         numbering = f"_Ballot#{str(ballot['ballotNum'])}" if ballot['ballotNum'] != 0 else ""
-        userFileName = f"{modifyPerson}_{self.currentYearSelected}{modifyTournamentName}_{ballotName}{numbering}"
+        userFileName = f"{modifyPerson}_{self.currentYearSelected}{ballot['abbreviatedtournament']}_{ballotName}{numbering}"
         serverFileName = ballot['index']
         html_content = ballot['formatted_html']
         if type == 'PDF':
             print("It's a pdf!")
-            userExportPath = os.path.join("downloads", "pdfs", f"{userFileName}.pdf")
+            userExportPath = os.path.join(altering_parent_dir, "downloads", "pdfs", f"{userFileName}.pdf")
             serverExportPath = os.path.join(savedpdfsPath, f"{serverFileName}.pdf")
             if not os.path.exists(userExportPath):
                 if os.path.exists(serverExportPath):
@@ -2184,7 +2364,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             self.on_status_update(f"{userFileName} converted to PDF!")
         elif type == 'ETHANJOHN':
             print("It's a JSON (Ethan)")
-            userExportPath = os.path.join("downloads", "jsons", f"{userFileName}.json")
+            userExportPath = os.path.join(altering_parent_dir, "downloads", "jsons", f"{userFileName}.json")
             serverExportPath = os.path.join(savedjsonsPath, f"{serverFileName}.json")
             if not os.path.exists(userExportPath):
                 if os.path.exists(serverExportPath):
@@ -2203,7 +2383,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                 self.on_status_update(f"{userFileName} converted to JSON!")
         elif type == 'DOCX':
             print("It's a DOCX!")
-            userExportPath = os.path.join("downloads", "docs", f"{userFileName}.docx")
+            userExportPath = os.path.join(altering_parent_dir, "downloads", "docs", f"{userFileName}.docx")
             serverExportPath = os.path.join(saveddocsPath, f"{serverFileName}.docx")
             if not os.path.exists(userExportPath):
                 if os.path.exists(serverExportPath):
@@ -2237,23 +2417,25 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         
 
     def sortAndAddBallots(self, tournaments, sentBallots, allBallots, download):
-        print("Writing any new ballot info to file")
-        self.on_status_update("Saving ballot info for offline use...")
-        if 'years' in savedBallots.get(currentUser, {}) and self.currentYearSelected in savedBallots[currentUser]['years']:
-            existing_ids = {ballotID['ballotJudgeId'] for ballotID in savedBallots[currentUser]['years'][self.currentYearSelected].get('savedBallotsIDs', [])}
-            existing_ballots = {ballot['ballotJudgeId'] for ballot in savedBallots[currentUser]['years'][self.currentYearSelected].get('savedBallots', [])}
-        else:
-            existing_ids = set()
-            existing_ballots = set()
-        newIDsFetched = [ballotID for ballotID in allBallots if (ballotID['ballotJudgeId'] not in existing_ids) and (ballotID['ballotJudgeId'] in {ballot['ballotJudgeId'] for ballot in sentBallots})]
-        newBallotsFetched = [ballot for ballot in sentBallots if ballot['ballotJudgeId'] not in existing_ballots]
         
-        
-        print(self.currentYearSelected)
-        savedBallots[currentUser]['years'][self.currentYearSelected]['savedBallotsIDs'].extend(newIDsFetched) 
-        savedBallots[currentUser]['years'][self.currentYearSelected]['savedBallots'].extend(newBallotsFetched)
-        with open('data/savedBallots.json', 'w') as file:
-            json.dump(savedBallots, file, indent=4)  # Using indent for pretty printing
+        if config['settings'][6]['value'] != True:
+            print("Writing any new ballot info to file")
+            self.on_status_update("Saving ballot info for offline use...")
+            if 'years' in savedBallots.get(currentUser, {}) and self.currentYearSelected in savedBallots[currentUser]['years']:
+                existing_ids = {ballotID['ballotJudgeId'] for ballotID in savedBallots[currentUser]['years'][self.currentYearSelected].get('savedBallotsIDs', [])}
+                existing_ballots = {ballot['ballotJudgeId'] for ballot in savedBallots[currentUser]['years'][self.currentYearSelected].get('savedBallots', [])}
+            else:
+                existing_ids = set()
+                existing_ballots = set()
+            newIDsFetched = [ballotID for ballotID in allBallots if (ballotID['ballotJudgeId'] not in existing_ids) and (ballotID['ballotJudgeId'] in {ballot['ballotJudgeId'] for ballot in sentBallots})]
+            newBallotsFetched = [ballot for ballot in sentBallots if ballot['ballotJudgeId'] not in existing_ballots]
+            
+            
+            print(self.currentYearSelected)
+            savedBallots[currentUser]['years'][self.currentYearSelected]['savedBallotsIDs'].extend(newIDsFetched) 
+            savedBallots[currentUser]['years'][self.currentYearSelected]['savedBallots'].extend(newBallotsFetched)
+            with open(os.path.join(altering_script_dir, 'data', 'savedBallots.json'), 'w') as file:
+                json.dump(savedBallots, file, indent=4)  # Using indent for pretty printing
 
         
         data = sentBallots
@@ -2277,8 +2459,9 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                         'bye': 'bye',
                         'type': 'Debate',
                         'tournament': ballots[0]['tournament'],
+                        'abbreviatedtournament': ballots[0]['abbreviatedtournament'],
                         'round': re.sub(r'\b[1-6\b]', str(i), ballots[0]['round']),
-                        'output_image': "resources/BallotImageBYE.jpg"
+                        'output_image': "BallotImageBYE.jpg"
                     }
                     ballots.append(ballotToAppend)
                     data.append(ballotToAppend)
@@ -2348,8 +2531,9 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                 return (
                     tournament_priority,  # Primary grouping for speeches
                     1,  # Alphabetically by speech event name
-                    speech_round_priority.get(round_detail, float('inf')),
-                    ballot['speechType']
+                    ballot['speechType'],
+                    speech_round_priority.get(round_detail, float('inf'))
+                    
                 )
         self.fetchedBallots = sorted(data, key=sort_key)
         
@@ -2363,23 +2547,35 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             if key not in finalsGroups:
                 finalsGroups[key] = []
             finalsGroups[key].append(ballot)
-        finalsRounds = [b for ballots in finalsGroups.values() if len(ballots) >= 5 for b in ballots]
+        finalsRounds = [b for ballots in finalsGroups.values() if len(ballots) == 5 for b in ballots]
+        superFinalsRounds = [b for ballots in finalsGroups.values() if len(ballots) == 7 for b in ballots]
+        GIGARounds = [b for ballots in finalsGroups.values() if len(ballots) == 9 for b in ballots]
         
 
             
         
         print(f"Found prelim rounds with a bye. There are {len(prelimRoundsWithBye)} rounds.")
         print(f"Found finals rounds. We have {len(finalsRounds)} finals rounds")
-        order = [1, 2, 3, 0, 4]  # Fill center, then sides
+        finalsOrder = [1, 2, 3, 0, 4]  # Fill center, then sides
+        superFinalsOrder = [2, 3, 4, 1, 5, 0, 6]
+        GIGAFinalsOrder = [3, 4, 5, 2, 6, 1, 7, 0, 8]
         finals_counter = 0
+        super_finals_counter = 0
+        GIGA_counter = 0
         regular_counter = 0
         for ballot in self.fetchedBallots:
-            row_multiplier = 3 * (finals_counter // 5) + 3 * (regular_counter // 3)
+            row_multiplier = 3 * (finals_counter // 5) + 3 * (regular_counter // 3) + 3 * (super_finals_counter // 7) + 3 * (GIGA_counter // 9)
             if ballot in finalsRounds:
                 print("Using 5 columns for these finals rounds")
-                col_index = order[finals_counter % 5]
+                col_index = finalsOrder[finals_counter % 5]
                 finals_counter += 1
-
+            elif ballot in superFinalsRounds:
+                col_index = superFinalsOrder[super_finals_counter % 7]
+                super_finals_counter += 1
+            elif ballot in GIGARounds:
+                col_index = GIGAFinalsOrder[GIGA_counter % 9]
+                GIGA_counter += 1
+                
             else:
                 print("Using 3 columns for normal ballots")
                 col_index = (regular_counter % 3) + 1
@@ -2394,45 +2590,38 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                 ballotName = re.sub(r'\s+', '', ballotName)
                 ballotName = re.sub(r'(\d)[AB]', r'\1', ballotName)
                 ballotName = ballot['speechType'][:4] + ballotName
-            
-            modifyTournamentName = re.sub(r"\b Championship\b", "s", ballot['tournament'])
-            modifyTournamentName = re.sub(r"\bNational\b", "", modifyTournamentName)
-            modifyTournamentName = re.sub(r"\bOnline\b", "ONL", modifyTournamentName)
-            modifyTournamentName = modifyTournamentName.replace(",", "").replace(" ", "")
-            tournament_label = QLabel(modifyTournamentName)
-            print(modifyTournamentName)
-            font = tournament_label.font()
-            metrics = QFontMetrics(font)
-            text = tournament_label.text()
-            while metrics.width(text) > 100:
-                font.setPointSize(font.pointSize() - 1)
-                metrics = QFontMetrics(font)
-            tournament_label.setFont(font)
-            tournament_label.setMaximumWidth(100)
-            tournament_label.setWordWrap(False)
+
+            print(ballot)
+            tournament_label = QLabel(ballot['abbreviatedtournament'])
+            tournament_label.setWordWrap(True)
             tournament_label.setAlignment(Qt.AlignCenter)
             print("Adding button and preview image")
             ballotButton = QPushButton(ballotName)
             ballotButton.setToolTip('View Ballot')
             if not ballot.get('bye'):
                 ballotButton.clicked.connect(lambda _, b=ballot['index'], f=ballot['formatted_html'], n=ballotName: self.display_ballot(b, f, n))
-            image_label = QLabel()
+            image_label = OriginalQLabel()
             pixmap = QPixmap(ballot['output_image'])
-            image_label.setPixmap(pixmap.scaled(100, 100, Qt.KeepAspectRatio))
-            image_label.setFixedSize(100, 100)
+            hundred = int(100 * multiplier)
+            image_label.setPixmap(pixmap.scaled(hundred, hundred, Qt.KeepAspectRatio))
+            image_label.setFixedSize(hundred, hundred)
             shadow = QGraphicsDropShadowEffect(self)
-            shadow.setBlurRadius(15)
-            shadow.setXOffset(5)
-            shadow.setYOffset(5)
+            shadow.setBlurRadius(int(15 * multiplier))
+            shadow.setXOffset(int(5 * multiplier))
+            shadow.setYOffset(int(5 * multiplier))
             shadow.setColor(Qt.black)
             image_label.setGraphicsEffect(shadow)
+            if not ballot.get('bye'):
+                image_label.ballot_index = ballot['index']
+                image_label.formatted_html = ballot['formatted_html']
+                image_label.ballot_name = ballotName
+                image_label.installEventFilter(self)
                 
-            downloadButton = QPushButton()
-            downloadButton.setIcon(QIcon(os.path.join('resources', 'downloadIcon.png')))
-            downloadButton.setIconSize(QSize(24, 24))
-            downloadButton.setToolTip('Download individual ballot in PDF format')
-            downloadButton.setFixedSize(35, 35)
-            downloadButton.clicked.connect(lambda _, l=[ballot], d='PDF': asyncio.run(self.process_downloading_ballots(l, d)))
+                downloadButton = QPushButton()
+                downloadButton.setIcon(QIcon(os.path.join(altering_script_dir, 'silaswingate.png')))
+                downloadButton.setIconSize(QSize(int(25 * multiplier), int(25 * multiplier)))
+                downloadButton.setToolTip('Download individual ballot in PDF format')
+                downloadButton.clicked.connect(lambda _, l=[ballot], d='PDF': asyncio.run(self.process_downloading_ballots(l, d)))
 
             buttonsContainer = QWidget()
             buttonsLayout = QHBoxLayout(buttonsContainer)
@@ -2442,7 +2631,8 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             
             
             buttonsLayout.addWidget(ballotButton, 3)
-            buttonsLayout.addWidget(downloadButton, 1)
+            if not ballot.get('bye'):
+                buttonsLayout.addWidget(downloadButton, 1)
 
             print("Placing ballot on grid now")
             self.gridLayout.addWidget(tournament_label, row_multiplier, col_index, alignment=Qt.AlignCenter)
@@ -2450,7 +2640,16 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             self.gridLayout.addWidget(buttonsContainer, row_multiplier + 2, col_index, alignment=Qt.AlignCenter)                
                     
         self.setup_stats(tournaments)
-        self.on_status_update("Done! Ballots are now in view-ballots and stats pages.")
+        self.on_super_status_update('Done!')
+        self.on_instruct('Ballots are now in the "View Ballots" and "Stats" pages.')
+        
+    def eventFilter(self, source, event):
+        if event.type() == event.MouseButtonPress:
+            if event.button() == Qt.LeftButton and isinstance(source, OriginalQLabel):
+                print("Image clicked")
+                self.display_ballot(source.ballot_index, source.formatted_html, source.ballot_name)
+                return True
+        return super().eventFilter(source, event)
     
     def resetGridLayout(self, layout):
         print("Removing all the ballots in the grid")
@@ -2463,16 +2662,155 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         print("Creating a ballot window if there isn't one and adding the ballot clicked.")
         if self.ballotWindow is None:
             self.ballotWindow = BallotDisplayWindow()
+        if self.ballotWindow.isMinimized():
+            self.ballotWindow.showNormal()
         self.ballotWindow.show()
         self.ballotWindow.addBallot(ballot_index, formatted_html, ballotName)
+        
+    def closeEvent(self, event):
+        print("Closing...")
+        if self.ballotWindow:
+            self.ballotWindow.close()
+        event.accept()
         
 
 
 
-
 if __name__ == '__main__':
+    # Define the exception handling function
+    def exception_hook(exctype, value, traceback):
+        # Print the exception details to the console or log it
+        print(f"Unhandled exception: {exctype}, {value}")
+        # Display an error message box to the user
+        QMessageBox.critical(None, "Application Error", f"""A rare error occurred. The program does not know how to handle it. Usually, you can just close this window and everything will work okay. If that doesn't work, close the app and reload it. Here's the error:
+                             
+An unexpected error occurred: {value}""")
+        # Call the normal exception hook after handling
+        sys.__excepthook__(exctype, value, traceback)
+
+    # Set the custom exception hook
+    sys.excepthook = exception_hook
+
+    # Create the application instance
     app = QApplication(sys.argv)
+    
+    screen = QDesktopWidget().screenGeometry()
+    setWidth = int(screen.width() * 0.5)
+    setHeight = int(screen.height() * 0.75)
+    multiplier = int(screen.width() * 0.4) / 1024
+    print(multiplier)
+    legacyStyles = f"""
+#menuBarWidget {{
+    background-color: green;
+    height: {60 * multiplier}px;
+    max-height: {60 * multiplier}px;
+    padding: 0;
+    margin: 0
+}}
+#title {{
+    color: white;
+    margin-left: {20 * multiplier}px;
+    font-size: {20 * multiplier}px
+}}
+#menuButton, #clickedMenuButton {{
+    background-color: transparent;
+    border: none;
+    padding: {5 * multiplier}px
+}}
+#statsContainer, #viewBallotsContainer, #error_label, #home_label, QScrollArea {{
+    border: none;
+}}
+"""
+
+    defaultStyles = f"""
+#mainContainer, QMainWindow {{
+    background: qlineargradient(
+        spread:pad, x1:0, y1:0, x2:0, y2:1,
+        stop:0 #a1c4fd, stop:1 #c2e9fb
+    );
+    margin: 0;
+    padding: 0;
+}}
+#statsContainer, #viewBallotsContainer, #error_label, #home_label, QScrollArea {{
+    background: transparent;
+    border: none;
+}}
+QScrollBar:vertical {{
+    background: transparent;
+    width: {6 * multiplier}px;
+}}
+QScrollBar::handle:vertical {{
+    background-color: rgba(0,0,0,0.6)
+}}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal,
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal,
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+    background: none;
+}}
+QPushButton, QLineEdit {{
+    background: rgba(225,250,255,1);
+}}
+QPushButton, QLineEdit, QLabel, QWidget {{
+    font-size: {int(18 * multiplier)}px;
+}}
+
+#menuBarWidget {{
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, 
+stop:0 rgba(0, 0, 0, 255), 
+stop:0.36 rgba(14, 0, 138, 255), 
+stop:1 rgba(161, 196, 253, 255));
+    min-height: {120 * multiplier}px;
+    padding: 0;
+    margin: 0
+}}
+#title {{
+    font-family: 'Times';
+    font-size: {int(40 * multiplier)}px;
+    font-weight: bold;
+    font-style: italic;
+    color: rgba(225,250,255,1);
+}}
+#menuButton, #clickedMenuButton {{
+    color: rgba(225,250,255,1);
+    border: none;
+    margin: 0px;
+    font-size: {int(18 * multiplier)}px;
+    padding: {5 * multiplier}px;
+}}
+#menuButton {{
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 0, y2: 1,
+        stop: 0.92 rgba(2, 0, 36, 0),
+        stop: 0.98 rgba(2, 0, 30, 0),
+        stop: 1.0 rgba(0, 0, 0, 0)
+    );
+}}
+#menuButton:hover {{
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 0, y2: 1,
+        stop: 0.89 rgba(2, 0, 36, 0),
+        stop: 0.96 rgba(2, 0, 30, 255),
+        stop: 1.0 rgba(0, 0, 0, 255)
+    );
+}}
+#clickedMenuButton {{
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 0, y2: 1,
+        stop: 0.85 rgba(2, 0, 36, 0),
+        stop: 0.95 rgba(2, 0, 30, 255),
+        stop: 1.0 rgba(0, 0, 0, 255)
+    );
+    font-weight: bold;
+}}
+"""
+
+    
+    
+    # Instantiate and show your main window
     ex = BallotReader()
     ex.show()
+    
+    # Execute the application and exit
     sys.exit(app.exec_())
 
