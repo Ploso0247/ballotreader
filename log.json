@@ -2,6 +2,13 @@
     "always": {
         "updatedFiles": ["log.json"]
     },
+    "v1.1.2": {
+        "description": "Test",
+        "updatedFiles": [
+            "ballots.py",
+            "downloads"
+        ]
+    },
     "v1.1.1": {
         "description": "Why did NCFCA suddenly decide in the middle of June that the current year is 2025? This fixes it.",
         "updatedFiles": [
