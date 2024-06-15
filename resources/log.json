@@ -1,6 +1,6 @@
 {
     "always": {
-        "updatedFiles": ["log.json"]
+        "updatedFiles": ["resources/log.json"]
     },
     "v1.1.3": {
         "description": "Test",
