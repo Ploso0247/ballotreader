@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "Atalho do Chromium";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, Copyright 2024 Autores do Chromium. Todos os direitos reservados.";
+NSBluetoothAlwaysUsageDescription = "Assim que o Chromium tiver acesso, os sites poderão solicitar acesso.";
+NSBluetoothPeripheralUsageDescription = "Assim que o Chromium tiver acesso, os sites poderão solicitar acesso.";
+NSCameraUsageDescription = "Assim que o Chromium tiver acesso, os sites poderão solicitar acesso.";
+NSHumanReadableCopyright = "Copyright 2024 Autores do Chromium. Todos os direitos reservados.";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "Assim que o Chromium tiver acesso, os sites poderão solicitar acesso.";
+NSMicrophoneUsageDescription = "Assim que o Chromium tiver acesso, os sites poderão solicitar acesso.";
+NSWebBrowserPublicKeyCredentialUsageDescription = "Assim que o Chromium tiver acesso, os sites poderão solicitar acesso.";

@@ -1,0 +1,36 @@
+{
+  "settings": [
+    {
+      "setting": "Remember my login?",
+      "value": false
+    },
+    {
+      "setting": "Sign me in automatically?",
+      "value": false
+    },
+    {
+      "setting": "Select most recent tournament and speeches automatically?",
+      "value": true
+    },
+    {
+      "setting": "Restore legacy styling?",
+      "value": false
+    },
+    {
+      "setting": "Offline mode? (can only view ballots you've viewed before)",
+      "value": false
+    },
+    {
+      "setting": "Automatically install updates on start-up?",
+      "value": false
+    },
+    {
+      "setting": "Never save any ballot data? (NOT recommended)",
+      "value": false
+    }
+  ],
+  "login": {
+    "email": "",
+    "password": ""
+  }
+}

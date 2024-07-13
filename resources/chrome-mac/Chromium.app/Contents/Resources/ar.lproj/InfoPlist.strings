@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "‏اختصار Chromium";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, ‏حقوق الطبع والنشر لعام 2024 لصالح The Chromium Authors. جميع الحقوق محفوظة.";
+NSBluetoothAlwaysUsageDescription = "‏بعد حصول Chromium على إمكانية الوصول، ستتمكن المواقع الإلكترونية من مطالبتك بإمكانية الوصول.";
+NSBluetoothPeripheralUsageDescription = "‏بعد حصول Chromium على إمكانية الوصول، ستتمكن المواقع الإلكترونية من مطالبتك بإمكانية الوصول.";
+NSCameraUsageDescription = "‏بعد حصول Chromium على إمكانية الوصول، ستتمكن المواقع الإلكترونية من مطالبتك بإمكانية الوصول.";
+NSHumanReadableCopyright = "‏حقوق الطبع والنشر لعام 2024 لصالح The Chromium Authors. جميع الحقوق محفوظة.";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "‏بعد حصول Chromium على إمكانية الوصول، ستتمكن المواقع الإلكترونية من مطالبتك بإمكانية الوصول.";
+NSMicrophoneUsageDescription = "‏بعد حصول Chromium على إمكانية الوصول، ستتمكن المواقع الإلكترونية من مطالبتك بإمكانية الوصول.";
+NSWebBrowserPublicKeyCredentialUsageDescription = "‏بعد حصول Chromium على إمكانية الوصول، ستتمكن المواقع الإلكترونية من مطالبتك بإمكانية الوصول.";

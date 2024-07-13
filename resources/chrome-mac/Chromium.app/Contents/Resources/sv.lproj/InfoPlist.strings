@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "Chromium-genväg";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, Upphovsrätt 2024 The Chromium Authors. Med ensamrätt.";
+NSBluetoothAlwaysUsageDescription = "När du har gett Chromium åtkomst kan webbplatser begära att få åtkomst.";
+NSBluetoothPeripheralUsageDescription = "När du har gett Chromium åtkomst kan webbplatser begära att få åtkomst.";
+NSCameraUsageDescription = "När du har gett Chromium åtkomst kan webbplatser begära att få åtkomst.";
+NSHumanReadableCopyright = "Upphovsrätt 2024 The Chromium Authors. Med ensamrätt.";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "När du har gett Chromium åtkomst kan webbplatser begära att få åtkomst.";
+NSMicrophoneUsageDescription = "När du har gett Chromium åtkomst kan webbplatser begära att få åtkomst.";
+NSWebBrowserPublicKeyCredentialUsageDescription = "När du har gett Chromium åtkomst kan webbplatser begära att få åtkomst.";

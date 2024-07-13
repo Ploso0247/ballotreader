@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "Ярлык Chromium";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, © The Chromium Authors, 2024 . Все права защищены.";
+NSBluetoothAlwaysUsageDescription = "Когда вы предоставите доступ Chromium, веб-сайты также смогут запрашивать у вас доступ.";
+NSBluetoothPeripheralUsageDescription = "Когда вы предоставите доступ Chromium, веб-сайты также смогут запрашивать у вас доступ.";
+NSCameraUsageDescription = "Когда вы предоставите доступ Chromium, веб-сайты также смогут запрашивать у вас доступ.";
+NSHumanReadableCopyright = "© The Chromium Authors, 2024 . Все права защищены.";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "Когда вы предоставите доступ Chromium, веб-сайты также смогут запрашивать у вас доступ.";
+NSMicrophoneUsageDescription = "Когда вы предоставите доступ Chromium, веб-сайты также смогут запрашивать у вас доступ.";
+NSWebBrowserPublicKeyCredentialUsageDescription = "Когда вы предоставите доступ Chromium, веб-сайты также смогут запрашивать у вас доступ.";

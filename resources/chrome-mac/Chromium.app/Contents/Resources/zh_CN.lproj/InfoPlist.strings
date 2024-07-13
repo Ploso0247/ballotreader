@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "Chromium 快捷方式";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, 版权所有2024 The Chromium Authors。保留所有权利。";
+NSBluetoothAlwaysUsageDescription = "一旦 Chromium 获得了使用权限，网站便能请求您向其授予使用权限。";
+NSBluetoothPeripheralUsageDescription = "一旦 Chromium 获得了使用权限，网站便能请求您向其授予使用权限。";
+NSCameraUsageDescription = "一旦 Chromium 获得了使用权限，网站便能请求您向其授予使用权限。";
+NSHumanReadableCopyright = "版权所有2024 The Chromium Authors。保留所有权利。";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "一旦 Chromium 获得了使用权限，网站便能请求您向其授予使用权限。";
+NSMicrophoneUsageDescription = "一旦 Chromium 获得了使用权限，网站便能请求您向其授予使用权限。";
+NSWebBrowserPublicKeyCredentialUsageDescription = "一旦 Chromium 获得了使用权限，网站便能请求您向其授予使用权限。";

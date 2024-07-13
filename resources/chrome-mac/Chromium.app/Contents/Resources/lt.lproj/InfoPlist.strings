@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "„Chromium“ spartusis klavišas";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, Autorių teisės priklauso „Chromium“ autoriams, 2024 m. Visos teisės saugomos.";
+NSBluetoothAlwaysUsageDescription = "Kai „Chromium“ galės pasiekti duomenis, svetainės taip pat galės prašyti suteikti leidimą juos pasiekti.";
+NSBluetoothPeripheralUsageDescription = "Kai „Chromium“ galės pasiekti duomenis, svetainės taip pat galės prašyti suteikti leidimą juos pasiekti.";
+NSCameraUsageDescription = "Kai „Chromium“ galės pasiekti duomenis, svetainės taip pat galės prašyti suteikti leidimą juos pasiekti.";
+NSHumanReadableCopyright = "Autorių teisės priklauso „Chromium“ autoriams, 2024 m. Visos teisės saugomos.";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "Kai „Chromium“ galės pasiekti duomenis, svetainės taip pat galės prašyti suteikti leidimą juos pasiekti.";
+NSMicrophoneUsageDescription = "Kai „Chromium“ galės pasiekti duomenis, svetainės taip pat galės prašyti suteikti leidimą juos pasiekti.";
+NSWebBrowserPublicKeyCredentialUsageDescription = "Kai „Chromium“ galės pasiekti duomenis, svetainės taip pat galės prašyti suteikti leidimą juos pasiekti.";

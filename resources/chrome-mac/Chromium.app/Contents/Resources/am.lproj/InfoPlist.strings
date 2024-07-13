@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "የChromium አቋራጭ";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, የቅጂ መብት 2024 የChromium ደራሲያን። ሁሉም መብቶች የተጠበቁ ናቸው።";
+NSBluetoothAlwaysUsageDescription = "አንዴ Chromium መዳረሻ ከኖረው በኋላ ድር ጣቢያዎች እርስዎን መዳረሻ መጠየቅ ይችላሉ።";
+NSBluetoothPeripheralUsageDescription = "አንዴ Chromium መዳረሻ ከኖረው በኋላ ድር ጣቢያዎች እርስዎን መዳረሻ መጠየቅ ይችላሉ።";
+NSCameraUsageDescription = "አንዴ Chromium መዳረሻ ከኖረው በኋላ ድር ጣቢያዎች እርስዎን መዳረሻ መጠየቅ ይችላሉ።";
+NSHumanReadableCopyright = "የቅጂ መብት 2024 የChromium ደራሲያን። ሁሉም መብቶች የተጠበቁ ናቸው።";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "አንዴ Chromium መዳረሻ ከኖረው በኋላ ድር ጣቢያዎች እርስዎን መዳረሻ መጠየቅ ይችላሉ።";
+NSMicrophoneUsageDescription = "አንዴ Chromium መዳረሻ ከኖረው በኋላ ድር ጣቢያዎች እርስዎን መዳረሻ መጠየቅ ይችላሉ።";
+NSWebBrowserPublicKeyCredentialUsageDescription = "አንዴ Chromium መዳረሻ ከኖረው በኋላ ድር ጣቢያዎች እርስዎን መዳረሻ መጠየቅ ይችላሉ።";

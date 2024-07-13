@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "‏میان‌بر Chromium";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, ‏حق نشر 2024 نویسندگان Chromium. کلیه حقوق محفوظ است.";
+NSBluetoothAlwaysUsageDescription = "‏وقتی Chromium دسترسی داشته باشد، وب‌سایت‌ها می‌توانند مجوز دسترسی درخواست کنند.";
+NSBluetoothPeripheralUsageDescription = "‏وقتی Chromium دسترسی داشته باشد، وب‌سایت‌ها می‌توانند مجوز دسترسی درخواست کنند.";
+NSCameraUsageDescription = "‏وقتی Chromium دسترسی داشته باشد، وب‌سایت‌ها می‌توانند مجوز دسترسی درخواست کنند.";
+NSHumanReadableCopyright = "‏حق نشر 2024 نویسندگان Chromium. کلیه حقوق محفوظ است.";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "‏وقتی Chromium دسترسی داشته باشد، وب‌سایت‌ها می‌توانند مجوز دسترسی درخواست کنند.";
+NSMicrophoneUsageDescription = "‏وقتی Chromium دسترسی داشته باشد، وب‌سایت‌ها می‌توانند مجوز دسترسی درخواست کنند.";
+NSWebBrowserPublicKeyCredentialUsageDescription = "‏وقتی Chromium دسترسی داشته باشد، وب‌سایت‌ها می‌توانند مجوز دسترسی درخواست کنند.";

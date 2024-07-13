@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "Ярлик Chromium";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, Авторське право 2024 Автори Chromium. Усі права захищено.";
+NSBluetoothAlwaysUsageDescription = "Коли Chromium отримає доступ, веб-сайти зможуть надсилати вам запити на доступ.";
+NSBluetoothPeripheralUsageDescription = "Коли Chromium отримає доступ, веб-сайти зможуть надсилати вам запити на доступ.";
+NSCameraUsageDescription = "Коли Chromium отримає доступ, веб-сайти зможуть надсилати вам запити на доступ.";
+NSHumanReadableCopyright = "Авторське право 2024 Автори Chromium. Усі права захищено.";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "Коли Chromium отримає доступ, веб-сайти зможуть надсилати вам запити на доступ.";
+NSMicrophoneUsageDescription = "Коли Chromium отримає доступ, веб-сайти зможуть надсилати вам запити на доступ.";
+NSWebBrowserPublicKeyCredentialUsageDescription = "Коли Chromium отримає доступ, веб-сайти зможуть надсилати вам запити на доступ.";

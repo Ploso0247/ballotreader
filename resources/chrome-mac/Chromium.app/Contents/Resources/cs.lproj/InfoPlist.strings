@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "Zkratka prohlížeče Chromium";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, Copyright 2024 Autoři prohlížeče Chromium. Všechna práva vyhrazena.";
+NSBluetoothAlwaysUsageDescription = "Až bude mít Chromium přístup, budou vás weby moci požádat o přístup.";
+NSBluetoothPeripheralUsageDescription = "Až bude mít Chromium přístup, budou vás weby moci požádat o přístup.";
+NSCameraUsageDescription = "Až bude mít Chromium přístup, budou vás weby moci požádat o přístup.";
+NSHumanReadableCopyright = "Copyright 2024 Autoři prohlížeče Chromium. Všechna práva vyhrazena.";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "Až bude mít Chromium přístup, budou vás weby moci požádat o přístup.";
+NSMicrophoneUsageDescription = "Až bude mít Chromium přístup, budou vás weby moci požádat o přístup.";
+NSWebBrowserPublicKeyCredentialUsageDescription = "Až bude mít Chromium přístup, budou vás weby moci požádat o přístup.";

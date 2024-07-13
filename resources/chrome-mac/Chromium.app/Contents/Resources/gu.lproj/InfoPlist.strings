@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "Chromium શૉર્ટકટ";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, કોપિરાઇટ 2024 The Chromium Authors. સર્વાધિકાર સુરક્ષિત.";
+NSBluetoothAlwaysUsageDescription = "એકવાર Chromiumને ઍક્સેસ મળે, તે પછી વેબસાઇટ તમારી પાસે ઍક્સેસ માગી શકશે.";
+NSBluetoothPeripheralUsageDescription = "એકવાર Chromiumને ઍક્સેસ મળે, તે પછી વેબસાઇટ તમારી પાસે ઍક્સેસ માગી શકશે.";
+NSCameraUsageDescription = "એકવાર Chromiumને ઍક્સેસ મળે, તે પછી વેબસાઇટ તમારી પાસે ઍક્સેસ માગી શકશે.";
+NSHumanReadableCopyright = "કોપિરાઇટ 2024 The Chromium Authors. સર્વાધિકાર સુરક્ષિત.";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "એકવાર Chromiumને ઍક્સેસ મળે, તે પછી વેબસાઇટ તમારી પાસે ઍક્સેસ માગી શકશે.";
+NSMicrophoneUsageDescription = "એકવાર Chromiumને ઍક્સેસ મળે, તે પછી વેબસાઇટ તમારી પાસે ઍક્સેસ માગી શકશે.";
+NSWebBrowserPublicKeyCredentialUsageDescription = "એકવાર Chromiumને ઍક્સેસ મળે, તે પછી વેબસાઇટ તમારી પાસે ઍક્સેસ માગી શકશે.";

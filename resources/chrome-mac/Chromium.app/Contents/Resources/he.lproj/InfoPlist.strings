@@ -1,0 +1,10 @@
+"Chromium Shortcut" = "‏קיצור דרך ב-Chromium";
+CFBundleGetInfoString = "Chromium 128.0.6536.0, ‏Copyright 2024 The Chromium Authors. כל הזכויות שמורות.";
+NSBluetoothAlwaysUsageDescription = "‏אחרי מתן גישה ל-Chromium, אתרים יוכלו לבקש ממך גישה.";
+NSBluetoothPeripheralUsageDescription = "‏אחרי מתן גישה ל-Chromium, אתרים יוכלו לבקש ממך גישה.";
+NSCameraUsageDescription = "‏אחרי מתן גישה ל-Chromium, אתרים יוכלו לבקש ממך גישה.";
+NSHumanReadableCopyright = "‏Copyright 2024 The Chromium Authors. כל הזכויות שמורות.";
+NSLocalNetworkUsageDescription = "This will allow you to select from available devices and display content on them.";
+NSLocationUsageDescription = "‏אחרי מתן גישה ל-Chromium, אתרים יוכלו לבקש ממך גישה.";
+NSMicrophoneUsageDescription = "‏אחרי מתן גישה ל-Chromium, אתרים יוכלו לבקש ממך גישה.";
+NSWebBrowserPublicKeyCredentialUsageDescription = "‏אחרי מתן גישה ל-Chromium, אתרים יוכלו לבקש ממך גישה.";
