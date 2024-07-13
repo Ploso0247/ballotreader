@@ -2,13 +2,11 @@
     "always": {
         "updatedFiles": ["resources/log.json"]
     },
-    "v1.1": {
+    "v1.0": {
         "description": "Reset to v1.0",
         "updatedFiles": [
-            "resources/dogs2934.txt"
         ],
         "removedFiles": [
-            "resources/yesnoyes.txt"
         ]
     }
 }
