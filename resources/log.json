@@ -5,7 +5,8 @@
     "v1.0": {
         "description": "Reset to v1.0",
         "updatedFiles": [
-            
+        ],
+        "removedFiles": [
         ]
     }
 }
