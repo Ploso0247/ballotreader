@@ -17,7 +17,6 @@ def runOtherInit():
     from cryptography.fernet import Fernet
     from base64 import b64encode, b64decode
     from random import choice
-    from platform import system as platformsystem
     import os
     import orjson
     #from pdf2docx import Converter
@@ -50,7 +49,7 @@ def runOtherInit():
 
     
     print("Done!")
-    key = b'oops i removed this haha no decryption for u' # HEY! You better not use this to decrypt other peoples files.
+    key = b'asdfasdf' # HEY! You better not use this to decrypt other peoples files.
     crypt = Fernet(key)
     global encrypt, decrypt
     def encrypt(password):
@@ -135,12 +134,17 @@ def runOtherInit():
         ALjson = None
         print(f"An error occurred: {e}")
     print("Checking your OS system to determine if we should use windows' chromium or linux' chromium.")
-    global chrome_path
+    global chrome_path, ssl_context
     if platformsystem() == "Windows":
+        ssl_context = None
         chrome_path = os.path.join(script_dir, 'chrome-win', 'chrome.exe')
     elif platformsystem() == 'Darwin':
+        import ssl
+        cacert_path = os.path.join(script_dir, 'cacert.pem')
+        ssl_context = ssl.create_default_context(cafile=cacert_path)
         chrome_path = os.path.join(script_dir, 'chrome-mac', 'Chromium.app', 'Contents', 'MacOS', 'Chromium')
     else:
+        ssl_context = None
         chrome_path = os.path.join(script_dir, 'chrome-linux', 'chrome')
     
 import sys
@@ -155,6 +159,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import QPixmap, QIcon, QCursor, QDesktopServices
 
 import asyncio
+from platform import system as platformsystem
 
 
 
@@ -659,7 +664,7 @@ class fetchBallots(QThread):
             
             
             try:
-                async with session.post(url, json=payload, headers=ballotFetchHeaders) as response:
+                async with session.post(url, json=payload, headers=ballotFetchHeaders, ssl=ssl_context) as response:
                     response.raise_for_status()
                     result = await response.json()
                     print("Query finished! Let's process this ballot.")
@@ -1277,7 +1282,7 @@ class BallotReader(QWidget):
         
         self.credentials_Grid.addWidget(self.fetch_data_button, 2, 0, 1, 3, Qt.AlignTop)
         
-        self.credentials_Grid.addWidget(self.fun_fact, 2, 0, 1, 3, Qt.AlignBottom)
+        self.credentials_Grid.addWidget(self.fun_fact, 3, 0, 1, 3, Qt.AlignBottom)
         self.container_layout.addWidget(self.credentials_container)
 
         # Checkboxes
@@ -2487,7 +2492,7 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         self.downloadsGrid.removeWidget(self.debate_group)
         self.downloads_error_label_grid.removeWidget(self.error_label_scroll_area)
         self.container_layout.removeWidget(self.error_label_scroll_area)
-        self.credentials_Grid.addWidget(self.error_label_scroll_area, 0, 3, 3, 1)
+        self.credentials_Grid.addWidget(self.error_label_scroll_area, 0, 3, 4, 1)
         self.error_label_scroll_area.setMaximumWidth(550)
         self.scroll_to_bottom()
             
@@ -3156,6 +3161,8 @@ An unexpected error occurred: {value}""")
     
     screen = QDesktopWidget().screenGeometry()
     setWidth = int(screen.width() * 0.5)
+    if platformsystem() == 'Darwin':
+        setWidth = int(screen.width() * 0.6)
     setHeight = int(screen.height() * 0.75)
     multiplier = int(screen.width() * 0.4) / 1024
     print(multiplier)
@@ -3226,6 +3233,7 @@ QPushButton, QLineEdit {{
 }}
 QPushButton, QLineEdit, QLabel, QWidget {{
     font-size: {int(18 * multiplier)}px;
+    color: black;
 }}
 
 #menuBarWidget {{
@@ -3408,7 +3416,7 @@ def AL():
             "sec-ch-ua-platform": "\"Windows\""
         }
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as response:
+            async with session.get(url, headers=headers, ssl=ssl_context) as response:
                 print(f"Response Content Type: {response.content_type}")
                 data = await response.json()
                 for tournament in data:
@@ -3481,7 +3489,7 @@ def AL():
             }
             """
         }
-        async with session.post(url, json=data, headers=headers) as response:
+        async with session.post(url, json=data, headers=headers, ssl=ssl_context) as response:
             print(f"Response Content Type: {response.content_type}")
             response_data = await response.json()
             print("Fetched confirmation list!")
@@ -3522,7 +3530,7 @@ def AL():
             "referrer": "https://dashboard.ncfca.org/",
             "referrerPolicy": "strict-origin-when-cross-origin"
         }
-        async with session.get(url, headers=headers) as response:
+        async with session.get(url, headers=headers, ssl=ssl_context) as response:
             print(f"Response Content Type: {response.content_type}")
             print(await response.read())
             response_data = await response.json()
@@ -3596,7 +3604,7 @@ def AL():
             "referrer": "https://dashboard.ncfca.org/",
             "referrerPolicy": "strict-origin-when-cross-origin"
         }
-        async with session.get(url, headers=headers) as response:
+        async with session.get(url, headers=headers, ssl=ssl_context) as response:
             response = await response.json()
             print("Fetched AL!")
             return [id, value, response]
