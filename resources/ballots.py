@@ -20,8 +20,6 @@ def runOtherInit():
     import os
     import orjson
     #from pdf2docx import Converter
-    
-    
 
     asyncioLock = asyncio.Lock()
 
@@ -49,7 +47,7 @@ def runOtherInit():
 
     
     print("Done!")
-    key = b'asdfasdf' # HEY! You better not use this to decrypt other peoples files.
+    key = b'd4qUOLC1eyfetbfIOHcqgvt3x7gt846CGkmvk0iZ9bM=' # HEY! You better not use this to decrypt other peoples files.
     crypt = Fernet(key)
     global encrypt, decrypt
     def encrypt(password):
@@ -820,7 +818,6 @@ class fetchBallots(QThread):
                     properties[f"category{i + 1}"] = "Blank"
                     properties[f"points{i + 1}"] = "Blank"
                     properties[f"comments{i + 1}"] = "Blank"
-            print(properties)
             
             
             variables = {
@@ -853,7 +850,6 @@ class fetchBallots(QThread):
         variables['abbreviatedtournament'] = modifyTournamentName
         output_image = os.path.join(previewimagesPath, f"BallotImage{ballotID['index']}.jpg")
         print(output_image)
-        print(ballot)
         print("Done assigning variables. Formatitng html and taking screenshot now.")
         formatted_html = template.render(**variables)
         print("Formatted html rendered! Calling take_screenshot!")
@@ -1440,6 +1436,7 @@ class BallotReader(QWidget):
             
             self.loadingLabel = QLabel("Loading...")
             self.loadALlayout.addWidget(self.loadingLabel, alignment=Qt.AlignCenter)
+            
             
             
             self.notSignedInLabel.hide()
@@ -2748,7 +2745,9 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         if not id_token:
             return
         self.loadingLabel.show()
+        QApplication.processEvents()
         AL()
+        self.loadingLabel.hide()
         return
         
     def wrapper_process_downloading_ballots(self, tournaments, sentBallots, allBallots, download):
@@ -3057,7 +3056,6 @@ So. Do you want to do that?""", QMessageBox.Yes | QMessageBox.No, QMessageBox.No
                 ballotName = resub(r'(\d)[AB]', r'\1', ballotName)
                 ballotName = ballot['speechType'][:4] + ballotName
 
-            print(ballot)
             tournament_label = QLabel(ballot['abbreviatedtournament'])
             tournament_label.setWordWrap(True)
             tournament_label.setAlignment(Qt.AlignCenter)
@@ -3371,34 +3369,6 @@ def AL():
     
     
 
-    confirmationlistprocessed = {}
-    def processConfirmationLists():
-        for item, value in confirmationlistjson.items():
-            confirmationList = value['data']['confirmationList']
-            confirmationlistprocessed[item] = []
-            for item2 in confirmationList:
-                if {
-                    "personId": item2['partnerPersonId'],
-                    "firstName": item2['partnerFirstName'],
-                    "lastName": item2['partnerLastName'],
-                    "eventId": item2['eventId'],
-                    "eventName": item2['eventName'],
-                    "partnerPersonId": item2['personId'],
-                    "partnerFirstName": item2['firstName'],
-                    "partnerLastName": item2['lastName']
-                } not in confirmationlistprocessed[item]:
-                    confirmationlistprocessed[item].append({
-                    "personId": item2['personId'],
-                    "firstName": item2['firstName'],
-                    "lastName": item2['lastName'],
-                    "eventId": item2['eventId'],
-                    "eventName": item2['eventName'],
-                    "partnerPersonId": item2['partnerPersonId'],
-                    "partnerFirstName": item2['partnerFirstName'],
-                    "partnerLastName": item2['partnerLastName']
-                    })
-    
-
 
     
 
@@ -3434,20 +3404,19 @@ def AL():
 
     async def getAllConfirmationLists(tournaments):
         print(f"Fetching {len(tournaments)} confirmation lists.")
-        confirmationLists = confirmationlistprocessed
+        confirmationLists = confirmationlistjson
         async with aiohttp.ClientSession() as session:
             tasks = []
             for tournament in tournaments:
-                if confirmationlistprocessed.get(f"{tournament['name']}_{tournament['id']}_{tournament['type']}_{tournament['time']}_{tournament['zone']}_"):
+                if confirmationlistjson.get(f"{tournament['name']}_{tournament['id']}_{tournament['type']}_{tournament['time']}_{tournament['zone']}_"):
                     continue
                 tasks.append(getConfirmationList(session, tournament))
             rawConfirmationLists = await asyncio.gather(*tasks)
         for list in rawConfirmationLists:
-            confirmationLists[list[0]] = list[1]
+            confirmationLists[list[0]] = list[1]['data']['confirmationList']
         print("Done fetching confirmation lists. Writing...")
         with open(os.path.join(script_dir, 'data', 'confirmationlists.json'), 'wb') as f:
             f.write(orjson.dumps(confirmationLists, option=orjson.OPT_INDENT_2))
-        processConfirmationLists()
     
     async def getConfirmationList(session, tournament):
         print(f"Fetching confirmation list for {tournament['name']}...")
@@ -3532,7 +3501,6 @@ def AL():
         }
         async with session.get(url, headers=headers, ssl=ssl_context) as response:
             print(f"Response Content Type: {response.content_type}")
-            print(await response.read())
             response_data = await response.json()
             print("Fetched tournament results!")
             response_key = f"{tournament['name']}_{tournament['id']}_{tournament['type']}_{tournament['time']}_{tournament['zone']}_"
@@ -3541,9 +3509,11 @@ def AL():
 
     def processListsAndResultsForAL():
         allPeople = []
-        for item, value in confirmationlistprocessed.items():
+        for item, value in confirmationlistjson.items():
+            print(value)
             allPeople.extend(value)
         allPeopleNoDuplicates = {}
+        print(allPeople)
         for item in allPeople:
             sID = str(item['personId'])
             pID = str(item['partnerPersonId'])
@@ -3614,7 +3584,6 @@ def AL():
 
     async def mainForAL():
         print(thisYear)
-        processConfirmationLists()
         tournaments = await getTournamentsIdsByYear(thisYear)
         await getAllConfirmationLists(tournaments)
         await getAllTournamentResults(tournaments)

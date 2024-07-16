@@ -16,5 +16,10 @@
 	<string>APPL</string>
 	<key>NSHighResolutionCapable</key>
 	<string>True</string>
+	<key>LSEnvironment</key>
+    		<dict>
+        		<key>PYTHONIOENCODING</key>
+        		<string>utf-8</string>
+    		</dict>
 </dict>
 </plist>

@@ -1,0 +1,2 @@
+exe.macosx-10.9-universal2-3.12/lib/QtWebEngineCore filter=lfs diff=lfs merge=lfs -text
+Ballot[[:space:]]Reader[[:space:]]v1.0.app/Contents/Resources/lib/QtWebEngineCore filter=lfs diff=lfs merge=lfs -text
